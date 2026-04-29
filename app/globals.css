@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+:root {
+  --background: #070a12;
+  --foreground: #eaf2ff;
+  --card: #0b1020;
+  --card-foreground: #eaf2ff;
+  --muted: #101a33;
+  --muted-foreground: #93a4c8;
+  --border: rgba(255, 255, 255, 0.12);
+  --input: rgba(255, 255, 255, 0.14);
+  --ring: rgba(0, 240, 255, 0.6);
+  --primary: #00f0ff;
+  --primary-foreground: #001018;
+  --secondary: #ff6b00;
+  --secondary-foreground: #120600;
+  --radius: 14px;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --radius-lg: var(--radius);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+::selection {
+  background: rgba(0, 240, 255, 0.28);
+  color: var(--foreground);
+}
+
+a {
+  text-underline-offset: 0.25em;
+}
