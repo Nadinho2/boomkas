@@ -10,6 +10,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { ComparisonTable } from "@/components/ComparisonTable";
 
 type BlogCategory =
@@ -991,6 +999,49 @@ function slugifyId(input: string) {
   return slug || "section";
 }
 
+function parseInline(text: string) {
+  const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g).filter(Boolean);
+  return parts.map((part, idx) => {
+    if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
+      return <strong key={idx}>{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith("`") && part.endsWith("`") && part.length > 2) {
+      return (
+        <code
+          key={idx}
+          className="rounded bg-white/[0.06] px-1.5 py-0.5 font-mono text-[0.92em] text-foreground"
+        >
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
+    return <span key={idx}>{part}</span>;
+  });
+}
+
+function isHrLine(line: string) {
+  const s = line.trim();
+  if (s.length < 3) return false;
+  return /^-+$/.test(s) || /^_+$/.test(s) || /^\*+$/.test(s);
+}
+
+function isMarkdownTableBlock(lines: string[]) {
+  if (lines.length < 2) return false;
+  const header = lines[0];
+  const divider = lines[1];
+  if (!header.includes("|")) return false;
+  if (!divider.includes("-")) return false;
+  const normalized = divider.replace(/\s/g, "");
+  return /^[|:-]+$/.test(normalized);
+}
+
+function parseTableRow(line: string) {
+  const trimmed = line.trim();
+  const noOuter =
+    trimmed.startsWith("|") && trimmed.endsWith("|") ? trimmed.slice(1, -1) : trimmed;
+  return noOuter.split("|").map((c) => c.trim());
+}
+
 function renderTextContent(text: string | null | undefined) {
   const raw = (text ?? "").trim();
   if (!raw) return <P>—</P>;
@@ -1013,6 +1064,58 @@ function renderTextContent(text: string | null | undefined) {
 
   blocks.forEach((block) => {
     const lines = block.split("\n").map((l) => l.trim()).filter(Boolean);
+    if (lines.length === 1 && isHrLine(lines[0])) {
+      flushList();
+      nodes.push(<Separator key={`hr-${nodes.length}`} className="my-6" />);
+      return;
+    }
+
+    if (lines.length > 0 && lines.every((l) => l.startsWith(">"))) {
+      flushList();
+      const quote = lines.map((l) => l.replace(/^>\s?/, "")).join("\n");
+      nodes.push(
+        <blockquote
+          key={`quote-${nodes.length}`}
+          className="rounded-2xl border border-border/70 bg-white/[0.03] px-4 py-3 text-sm text-muted-foreground shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]"
+        >
+          {parseInline(quote)}
+        </blockquote>
+      );
+      return;
+    }
+
+    if (isMarkdownTableBlock(lines)) {
+      flushList();
+      const headers = parseTableRow(lines[0]);
+      const rows = lines.slice(2).map(parseTableRow).filter((r) => r.some(Boolean));
+
+      nodes.push(
+        <div key={`table-${nodes.length}`} className="w-full overflow-x-auto rounded-2xl">
+          <Table className="min-w-[720px]">
+            <TableHeader>
+              <TableRow>
+                {headers.map((h) => (
+                  <TableHead key={h}>{parseInline(h)}</TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.map((r, i) => (
+                <TableRow key={i}>
+                  {headers.map((_, j) => (
+                    <TableCell key={j} className="align-top">
+                      {parseInline(r[j] ?? "")}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      );
+      return;
+    }
+
     const isList = lines.every((l) => l.startsWith("- "));
     if (isList) {
       lines.forEach((l) => listBuffer.push(l.replace(/^- /, "").trim()));
@@ -1023,17 +1126,25 @@ function renderTextContent(text: string | null | undefined) {
 
     if (block.startsWith("## ")) {
       const label = block.replace(/^##\s+/, "").trim();
-      nodes.push(<H2 key={`h2-${nodes.length}`} id={slugifyId(label)}>{label}</H2>);
+      nodes.push(
+        <H2 key={`h2-${nodes.length}`} id={slugifyId(label)}>
+          {label}
+        </H2>
+      );
       return;
     }
 
     if (block.startsWith("### ")) {
       const label = block.replace(/^###\s+/, "").trim();
-      nodes.push(<H3 key={`h3-${nodes.length}`} id={slugifyId(label)}>{label}</H3>);
+      nodes.push(
+        <H3 key={`h3-${nodes.length}`} id={slugifyId(label)}>
+          {label}
+        </H3>
+      );
       return;
     }
 
-    nodes.push(<P key={`p-${nodes.length}`}>{block}</P>);
+    nodes.push(<P key={`p-${nodes.length}`}>{parseInline(block)}</P>);
   });
 
   flushList();
