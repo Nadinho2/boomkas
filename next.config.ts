@@ -3,19 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   async redirects() {
-    return [
-      {
-        source: '/:path*',
-        has: [
-          {
-            type: 'host',
-            value: 'boomkas.vercel.app',
-          },
-        ],
-        destination: 'https://boomkas.com/:path*',
-        permanent: true,
-      },
-    ]
+    return [];
   },
   async headers() {
     return [
