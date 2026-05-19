@@ -61,7 +61,13 @@ export default async function UseCaseSlugPage({ params }: { params: Promise<{ sl
               </div>
               <div className="flex flex-col gap-2 min-w-[150px]">
                 <Button asChild variant="primary" className="w-full">
-                  <a href={`#affiliate-${tool.slug}`}>Get {tool.name}</a>
+                  <a
+                    href={`/go/${tool.slug}`}
+                    target="_blank"
+                    rel="nofollow noopener noreferrer"
+                  >
+                    Get {tool.name}
+                  </a>
                 </Button>
                 <Button asChild variant="ghost" className="w-full">
                   <Link href={`/tools/${tool.slug}`}>View full review →</Link>

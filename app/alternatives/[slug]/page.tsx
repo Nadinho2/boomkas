@@ -61,7 +61,13 @@ export default async function AlternativesSlugPage({ params }: { params: Promise
               </div>
               <div className="flex flex-col gap-2 min-w-[140px]">
                 <Button asChild variant="primary" className="w-full">
-                  <a href={`#affiliate-${alt.slug}`}>Visit Site</a>
+                  <a
+                    href={`/go/${alt.slug}`}
+                    target="_blank"
+                    rel="nofollow noopener noreferrer"
+                  >
+                    Visit Site
+                  </a>
                 </Button>
                 <Button asChild variant="ghost" className="w-full">
                   <Link href={`/tools/${alt.slug}`}>View full review →</Link>

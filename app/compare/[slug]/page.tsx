@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { AffiliateButton } from "@/components/AffiliateButton";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -24,8 +24,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function CompareSlugPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const toolA = "Tool A";
-  const toolB = "Tool B";
+  const [a, b] = slug.split("-vs-");
+  const toolASlug = a || "cursor";
+  const toolBSlug = b || "windsurf";
+  const toolA = toolASlug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  const toolB = toolBSlug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-14 sm:px-6 sm:py-20">
@@ -98,12 +101,8 @@ export default async function CompareSlugPage({ params }: { params: Promise<{ sl
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 mb-16">
-        <Button asChild className="w-full sm:w-auto" variant="primary">
-          <a href={`#affiliate-${toolA.toLowerCase().replace(/\s/g, '-')}`}>Get {toolA}</a>
-        </Button>
-        <Button asChild className="w-full sm:w-auto" variant="ghost">
-          <a href={`#affiliate-${toolB.toLowerCase().replace(/\s/g, '-')}`}>Get {toolB}</a>
-        </Button>
+        <AffiliateButton slug={toolASlug} size="lg" className="w-full sm:w-auto" />
+        <AffiliateButton slug={toolBSlug} size="lg" variant="secondary" className="w-full sm:w-auto" />
       </div>
 
       <div>

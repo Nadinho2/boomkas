@@ -99,7 +99,7 @@ const TOOLS: Record<string, ToolReview> = {
     boomFactor: 9.4,
     autonomy: "High",
     pricingHeadline: "$16–20/mo Pro (limited free tier)",
-    affiliateUrl: "#affiliate-cursor",
+    affiliateUrl: "/go/cursor",
     website: "https://cursor.com",
     bestFor: "Everyday coding, multi-file editing, and developer workflows",
     overview: [
@@ -240,7 +240,7 @@ const TOOLS: Record<string, ToolReview> = {
     autonomy: "High",
     autonomyLabel: "Very High",
     pricingHeadline: "Usage-based (Pro / Team plans)",
-    affiliateUrl: "#affiliate-claude-code",
+    affiliateUrl: "/go/claude-code",
     website: "https://www.anthropic.com",
     bestFor: "Complex reasoning, long-context tasks, coding agents",
     overview: [
@@ -374,7 +374,7 @@ const TOOLS: Record<string, ToolReview> = {
     boomFactor: 9.1,
     autonomy: "High",
     pricingHeadline: "Generous free tier + Lite $3–10/mo, Pro ~$10–30/mo",
-    affiliateUrl: "#affiliate-trae",
+    affiliateUrl: "/go/trae",
     website: "https://trae.ai",
     bestFor: "Budget developers, full app building, custom agent teams",
     overview: [
@@ -520,7 +520,7 @@ const TOOLS: Record<string, ToolReview> = {
     boomFactor: 8.8,
     autonomy: "High",
     pricingHeadline: "Credit-based (limited free tier, paid plans)",
-    affiliateUrl: "#affiliate-lovable",
+    affiliateUrl: "/go/lovable",
     website: "https://lovable.dev",
     bestFor: "Founders and non-coders building MVPs fast",
     overview: [
@@ -647,7 +647,7 @@ const TOOLS: Record<string, ToolReview> = {
     boomFactor: 9.0,
     autonomy: "High",
     pricingHeadline: "Free self-hosted / Cloud plans from $20/mo",
-    affiliateUrl: "#affiliate-n8n",
+    affiliateUrl: "/go/n8n",
     website: "https://n8n.io",
     bestFor: "Developers and teams who want full control and self-hosting",
     overview: [
@@ -783,7 +783,7 @@ const TOOLS: Record<string, ToolReview> = {
     autonomy: "High",
     autonomyLabel: "Very High",
     pricingHeadline: "Free open-source / Paid cloud options",
-    affiliateUrl: "#affiliate-crewai",
+    affiliateUrl: "/go/crewai",
     website: "https://crewai.com",
     bestFor: "Developers building collaborative AI agent teams",
     overview: [
@@ -917,7 +917,7 @@ const TOOLS: Record<string, ToolReview> = {
     autonomy: "Medium",
     autonomyLabel: "Medium-High",
     pricingHeadline: "Free tier / Solo plan ~$37/mo",
-    affiliateUrl: "#affiliate-gumloop",
+    affiliateUrl: "/go/gumloop",
     website: "https://gumloop.com",
     bestFor: "Non-technical users and marketers building AI automations",
     overview: [
@@ -1059,7 +1059,7 @@ const TOOLS: Record<string, ToolReview> = {
     autonomy: "Medium",
     autonomyLabel: "Medium-High",
     pricingHeadline: "Free tier / Professional plans from $20/mo+",
-    affiliateUrl: "#affiliate-zapier-agents",
+    affiliateUrl: "/go/zapier-agents",
     website: "https://zapier.com",
     bestFor: "Business users and teams wanting simple yet powerful automations",
     overview: [
@@ -1194,7 +1194,7 @@ const TOOLS: Record<string, ToolReview> = {
     boomFactor: 8.7,
     autonomy: "High",
     pricingHeadline: "Paid plans (starts around $25–50/mo)",
-    affiliateUrl: "#affiliate-relay",
+    affiliateUrl: "/go/relay",
     website: "https://relay.app",
     bestFor: "Teams looking for a modern, reliable automation platform",
     overview: [
@@ -1323,7 +1323,7 @@ const TOOLS: Record<string, ToolReview> = {
     boomFactor: 8.9,
     autonomy: "High",
     pricingHeadline: "Usage-based (part of Microsoft Copilot licensing)",
-    affiliateUrl: "#affiliate-copilot-studio",
+    affiliateUrl: "/go/copilot-studio",
     website: "https://copilotstudio.microsoft.com",
     bestFor: "Enterprises and teams already using Microsoft 365",
     overview: [
@@ -1459,7 +1459,7 @@ const TOOLS: Record<string, ToolReview> = {
     boomFactor: 8.7,
     autonomy: "High",
     pricingHeadline: "Starts at $49/month",
-    affiliateUrl: "#affiliate-lindy",
+    affiliateUrl: "/go/lindy",
     website: "https://lindy.ai",
     bestFor: "Busy professionals, executives, and solopreneurs",
     overview: [
@@ -1594,7 +1594,7 @@ const TOOLS: Record<string, ToolReview> = {
     boomFactor: 8.8,
     autonomy: "High",
     pricingHeadline: "Free tier / Core plan from $9/mo",
-    affiliateUrl: "#affiliate-make",
+    affiliateUrl: "/go/make",
     website: "https://www.make.com",
     bestFor: "Users who want powerful visual automations with AI",
     overview: [
@@ -1731,7 +1731,7 @@ const TOOLS: Record<string, ToolReview> = {
     autonomy: "High",
     autonomyLabel: "Very High",
     pricingHeadline: "Enterprise / Usage-based (limited public access)",
-    affiliateUrl: "#affiliate-devin",
+    affiliateUrl: "/go/devin",
     website: "https://www.cognition.ai",
     bestFor: "Advanced software engineering and complex project automation",
     overview: [
@@ -1861,7 +1861,7 @@ const TOOLS: Record<string, ToolReview> = {
     boomFactor: 8.7,
     autonomy: "High",
     pricingHeadline: "Subscription-based (varies)",
-    affiliateUrl: "#affiliate-windsurf",
+    affiliateUrl: "/go/windsurf",
     website: "https://codeium.com/windsurf",
     bestFor: "Developers seeking next-gen AI coding experiences",
     overview: [
@@ -1991,7 +1991,7 @@ const TOOLS: Record<string, ToolReview> = {
     autonomy: "Medium",
     autonomyLabel: "Medium-High",
     pricingHeadline: "Free tier • $18/mo Pro",
-    affiliateUrl: "#affiliate-pearai",
+    affiliateUrl: "/go/pearai",
     website: "https://pearai.com",
     bestFor: "Developers who want an agentic IDE with guided project workflows",
     overview: [
@@ -2050,7 +2050,7 @@ const TOOLS: Record<string, ToolReview> = {
     boomFactor: 8.5,
     autonomy: "Medium",
     pricingHeadline: "Free • Paid AI add-ons",
-    affiliateUrl: "#affiliate-zed",
+    affiliateUrl: "/go/zed-agent",
     website: "https://zed.dev",
     bestFor: "Developers who want a blazing-fast editor with practical agent actions",
     overview: [
@@ -2104,7 +2104,7 @@ const TOOLS: Record<string, ToolReview> = {
     autonomy: "High",
     autonomyLabel: "Very High",
     pricingHeadline: "Open source • Cloud/enterprise add-ons",
-    affiliateUrl: "#affiliate-langgraph",
+    affiliateUrl: "/go/langgraph",
     website: "https://langchain.com/langgraph",
     bestFor: "Developers building stateful multi-agent systems with reliability requirements",
     overview: [
@@ -2158,7 +2158,7 @@ const TOOLS: Record<string, ToolReview> = {
     autonomy: "Medium",
     autonomyLabel: "Medium-High",
     pricingHeadline: "Open source • Hosted offerings vary",
-    affiliateUrl: "#affiliate-autogen",
+    affiliateUrl: "/go/autogen",
     website: "https://github.com/microsoft/autogen",
     bestFor: "Developers prototyping multi-agent collaboration and research-to-action workflows",
     overview: [
@@ -2211,7 +2211,7 @@ const TOOLS: Record<string, ToolReview> = {
     boomFactor: 8.6,
     autonomy: "Medium",
     pricingHeadline: "Free tier • $20/mo Pro • Teams",
-    affiliateUrl: "#affiliate-taskade",
+    affiliateUrl: "/go/taskade-genesis",
     website: "https://www.taskade.com",
     bestFor: "Teams who want no-code agent orchestration inside a task workspace",
     overview: [
@@ -2265,7 +2265,7 @@ const TOOLS: Record<string, ToolReview> = {
     boomFactor: 8.2,
     autonomy: "Medium",
     pricingHeadline: "Free tier • $15/mo Pro",
-    affiliateUrl: "#affiliate-workbeaver",
+    affiliateUrl: "/go/workbeaver",
     website: "https://workbeaver.ai",
     bestFor: "Individuals who want a lightweight personal agent for daily operations",
     overview: [
@@ -2318,7 +2318,7 @@ const TOOLS: Record<string, ToolReview> = {
     boomFactor: 8.8,
     autonomy: "High",
     pricingHeadline: "Free tier • $25/mo Pro",
-    affiliateUrl: "#affiliate-manus",
+    affiliateUrl: "/go/manus",
     website: "https://manus.ai",
     bestFor: "People who want a browser-based agent for research and web task execution",
     overview: [
@@ -2372,7 +2372,7 @@ const TOOLS: Record<string, ToolReview> = {
     autonomy: "Medium",
     autonomyLabel: "Medium-High",
     pricingHeadline: "From $49/mo • Team/Enterprise",
-    affiliateUrl: "#affiliate-stack-ai",
+    affiliateUrl: "/go/stack-ai",
     website: "https://www.stack-ai.com",
     bestFor: "Teams building internal AI workflows with governance and connectors",
     overview: [
@@ -2425,7 +2425,7 @@ const TOOLS: Record<string, ToolReview> = {
     boomFactor: 8.3,
     autonomy: "Medium",
     pricingHeadline: "From $99/mo • Enterprise",
-    affiliateUrl: "#affiliate-airops",
+    affiliateUrl: "/go/airops",
     website: "https://www.airops.com",
     bestFor: "Teams running repeatable content and SEO workflows with guardrails",
     overview: [
@@ -2479,7 +2479,7 @@ const TOOLS: Record<string, ToolReview> = {
     autonomy: "High",
     autonomyLabel: "Very High",
     pricingHeadline: "Usage-based • Team plans",
-    affiliateUrl: "#affiliate-openai-operator",
+    affiliateUrl: "/go/openai-operator",
     website: "https://openai.com",
     bestFor: "High-autonomy execution workflows with tools, planning, and iteration loops",
     overview: [
@@ -2532,7 +2532,7 @@ const TOOLS: Record<string, ToolReview> = {
     autonomy: "Medium",
     autonomyLabel: "Medium-High",
     pricingHeadline: "Enterprise pricing • Usage add-ons",
-    affiliateUrl: "#affiliate-agentforce",
+    affiliateUrl: "/go/salesforce-agentforce",
     website: "https://www.salesforce.com",
     bestFor: "Revenue teams that want agentic automation directly inside Salesforce",
     overview: [
@@ -2585,7 +2585,7 @@ const TOOLS: Record<string, ToolReview> = {
     autonomy: "Medium",
     autonomyLabel: "Medium-High",
     pricingHeadline: "Free tier • From $49/mo",
-    affiliateUrl: "#affiliate-relevance-ai",
+    affiliateUrl: "/go/relevance-ai",
     website: "https://relevanceai.com",
     bestFor: "Teams building agent workflows that need evaluation and repeatability",
     overview: [
@@ -2638,7 +2638,7 @@ const TOOLS: Record<string, ToolReview> = {
     boomFactor: 9.0,
     autonomy: "High",
     pricingHeadline: "Enterprise pricing",
-    affiliateUrl: "#affiliate-decagon",
+    affiliateUrl: "/go/decagon",
     website: "https://decagon.ai",
     bestFor: "Support organizations that want safe automation with governance",
     overview: [
@@ -2691,7 +2691,7 @@ const TOOLS: Record<string, ToolReview> = {
     autonomy: "Medium",
     autonomyLabel: "Medium-High",
     pricingHeadline: "Free tier • From $29/mo",
-    affiliateUrl: "#affiliate-pipedream",
+    affiliateUrl: "/go/pipedream-agents",
     website: "https://pipedream.com",
     bestFor: "Developers who want automation with code + agent steps and webhooks",
     overview: [
@@ -2744,7 +2744,7 @@ const TOOLS: Record<string, ToolReview> = {
     boomFactor: 8.1,
     autonomy: "Medium",
     pricingHeadline: "Free tier • $20/mo Pro",
-    affiliateUrl: "#affiliate-bardeen",
+    affiliateUrl: "/go/bardeen",
     website: "https://www.bardeen.ai",
     bestFor: "Users who want browser automations and quick workflow playbooks",
     overview: [
@@ -2798,7 +2798,7 @@ const TOOLS: Record<string, ToolReview> = {
     autonomy: "Medium",
     autonomyLabel: "Medium-High",
     pricingHeadline: "From $0.99/resolution • Enterprise",
-    affiliateUrl: "#affiliate-intercom-fin",
+    affiliateUrl: "/go/intercom-fin",
     website: "https://www.intercom.com",
     bestFor: "Support teams that want deflection with safe escalation inside Intercom",
     overview: [
@@ -2851,7 +2851,7 @@ const TOOLS: Record<string, ToolReview> = {
     autonomy: "Medium",
     autonomyLabel: "Medium-High",
     pricingHeadline: "Pro add-on • Usage tiers",
-    affiliateUrl: "#affiliate-hubspot-breeze",
+    affiliateUrl: "/go/hubspot-breeze-agents",
     website: "https://www.hubspot.com",
     bestFor: "HubSpot teams that want AI agents to automate CRM and campaign operations",
     overview: [
@@ -2904,7 +2904,7 @@ const TOOLS: Record<string, ToolReview> = {
     autonomy: "Low",
     autonomyLabel: "Low-Medium",
     pricingHeadline: "Add-on • From $10/user/mo",
-    affiliateUrl: "#affiliate-notion-ai",
+    affiliateUrl: "/go/notion-ai-agents",
     website: "https://www.notion.so",
     bestFor: "Teams that live in Notion and want docs-to-actions productivity",
     overview: [
@@ -2957,7 +2957,7 @@ const TOOLS: Record<string, ToolReview> = {
     autonomy: "Low",
     autonomyLabel: "Low-Medium",
     pricingHeadline: "Business/Enterprise plans",
-    affiliateUrl: "#affiliate-asana-ai",
+    affiliateUrl: "/go/asana-ai-studio",
     website: "https://asana.com",
     bestFor: "Organizations that run projects in Asana and want AI to move work forward",
     overview: [
