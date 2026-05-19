@@ -56,6 +56,7 @@ type ToolReview = {
   heroTitle?: string;
   metaTitle?: string;
   metaDescription?: string;
+  lastUpdatedISO?: string;
   tagline: string;
   categories: ToolCategory[];
   rating: number;
@@ -3111,6 +3112,10 @@ function formatRating(rating: number) {
   return Math.round(rating * 10) / 10;
 }
 
+function formatMonthYear(date: Date) {
+  return new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(date);
+}
+
 function RatingStars({ rating }: { rating: number }) {
   const rounded = Math.round(rating * 2) / 2;
   const full = Math.floor(rounded);
@@ -3153,6 +3158,7 @@ function DbToolPage({ tool }: { tool: DbToolRow }) {
   const rating = tool.rating ?? 0;
   const keyFeatures = tool.keyFeatures ?? [];
   const affiliate = tool.affiliateLink ?? "#";
+  const lastUpdated = formatMonthYear(new Date());
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 sm:py-16">
@@ -3178,6 +3184,7 @@ function DbToolPage({ tool }: { tool: DbToolRow }) {
                 <h1 className="text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
                   {tool.name}
                 </h1>
+                <div className="mt-2 text-xs text-muted-foreground">Last updated: {lastUpdated}</div>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   {tool.category ? <Badge variant="default">{tool.category}</Badge> : null}
                   <Badge variant={autonomyBadgeVariant(autonomy)}>{autonomy} autonomy</Badge>
@@ -3210,11 +3217,14 @@ function DbToolPage({ tool }: { tool: DbToolRow }) {
                 <div className="mt-1 font-medium">{tool.pricing ?? "—"}</div>
               </div>
               <div className="flex flex-wrap gap-3 pt-2">
-                <Button asChild variant="primary">
-                  <a href={affiliate} target="_blank" rel="noreferrer">
-                    Visit
-                  </a>
-                </Button>
+                <div className="flex flex-col gap-1">
+                  <Button asChild variant="primary">
+                    <a href={affiliate} target="_blank" rel="nofollow noopener noreferrer">
+                      Visit
+                    </a>
+                  </Button>
+                  <div className="text-xs text-muted-foreground">Affiliate link — we may earn a commission</div>
+                </div>
                 <Button asChild variant="secondary">
                   <Link href="/tools">Back to Tools</Link>
                 </Button>
@@ -3273,6 +3283,7 @@ export default async function ToolReviewPage({
   }
 
   const related = pickRelatedTools(tool);
+  const lastUpdated = formatMonthYear(tool.lastUpdatedISO ? new Date(tool.lastUpdatedISO) : new Date());
 
   const applicationCategory =
     tool.categories.includes("IDE Agents") || tool.categories.includes("Coding Agents")
@@ -3369,6 +3380,7 @@ export default async function ToolReviewPage({
                 <h1 className="text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
                   {tool.heroTitle ?? `${tool.name} Review (2026)`}
                 </h1>
+                <div className="mt-2 text-xs text-muted-foreground">Last updated: {lastUpdated}</div>
                 <p className="mt-2 text-pretty text-sm leading-7 text-muted-foreground sm:text-base">
                   {tool.tagline}
                 </p>
@@ -3406,11 +3418,14 @@ export default async function ToolReviewPage({
             </div>
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <Button asChild size="lg" variant="secondary">
-                <a href={tool.affiliateUrl} rel="nofollow">
-                  Try {tool.name} (Affiliate)
-                </a>
-              </Button>
+              <div className="flex flex-col gap-1">
+                <Button asChild size="lg" variant="secondary">
+                  <a href={tool.affiliateUrl} target="_blank" rel="nofollow noopener noreferrer">
+                    Try {tool.name} (Affiliate)
+                  </a>
+                </Button>
+                <div className="text-xs text-muted-foreground">Affiliate link — we may earn a commission</div>
+              </div>
               <Button asChild size="lg" variant="ghost">
                 <a href={tool.website} target="_blank" rel="noreferrer">
                   Official Site

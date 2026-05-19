@@ -135,10 +135,9 @@ export default function RootLayout({
               <NavLink href="/">Home</NavLink>
               <NavLink href="/tools">Tools</NavLink>
               <NavLink href="/compare">Compare</NavLink>
-              <NavLink href="/alternatives">Alternatives</NavLink>
               <NavLink href="/guides">Guides</NavLink>
-              <NavLink href="/use-cases">Use Cases</NavLink>
               <NavLink href="/blog">Blog</NavLink>
+              <NavLink href="/about">About</NavLink>
             </nav>
 
             <div className="flex items-center gap-2">
@@ -150,10 +149,9 @@ export default function RootLayout({
                   <MobileNavLink href="/">Home</MobileNavLink>
                   <MobileNavLink href="/tools">Tools</MobileNavLink>
                   <MobileNavLink href="/compare">Compare</MobileNavLink>
-                  <MobileNavLink href="/alternatives">Alternatives</MobileNavLink>
                   <MobileNavLink href="/guides">Guides</MobileNavLink>
-                  <MobileNavLink href="/use-cases">Use Cases</MobileNavLink>
                   <MobileNavLink href="/blog">Blog</MobileNavLink>
+                  <MobileNavLink href="/about">About</MobileNavLink>
                 </div>
               </details>
               <Link
