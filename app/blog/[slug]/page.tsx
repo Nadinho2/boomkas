@@ -1005,6 +1005,52 @@ function slugifyId(input: string) {
 
 function parseInline(text: string) {
   const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g).filter(Boolean);
+
+  const renderLinks = (plain: string, keyPrefix: string) => {
+    const nodes: ReactNode[] = [];
+    const re = /\[([^\]]+)\]\(([^)]+)\)/g;
+    let last = 0;
+    let m: RegExpExecArray | null;
+    let idx = 0;
+
+    while ((m = re.exec(plain))) {
+      if (m.index > last) {
+        nodes.push(<span key={`${keyPrefix}-t-${idx++}`}>{plain.slice(last, m.index)}</span>);
+      }
+      const label = m[1];
+      const href = m[2];
+      const isInternal = href.startsWith("/");
+      nodes.push(
+        isInternal ? (
+          <Link
+            key={`${keyPrefix}-l-${idx++}`}
+            href={href}
+            className="font-medium text-[color:var(--primary)] hover:underline"
+          >
+            {label}
+          </Link>
+        ) : (
+          <a
+            key={`${keyPrefix}-l-${idx++}`}
+            href={href}
+            target="_blank"
+            rel="nofollow noopener noreferrer"
+            className="font-medium text-[color:var(--primary)] hover:underline"
+          >
+            {label}
+          </a>
+        )
+      );
+      last = m.index + m[0].length;
+    }
+
+    if (last < plain.length) {
+      nodes.push(<span key={`${keyPrefix}-t-${idx++}`}>{plain.slice(last)}</span>);
+    }
+
+    return nodes.length ? nodes : [<span key={`${keyPrefix}-t-0`}>{plain}</span>];
+  };
+
   return parts.map((part, idx) => {
     if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
       return <strong key={idx}>{part.slice(2, -2)}</strong>;
@@ -1019,7 +1065,7 @@ function parseInline(text: string) {
         </code>
       );
     }
-    return <span key={idx}>{part}</span>;
+    return <span key={idx}>{renderLinks(part, String(idx))}</span>;
   });
 }
 
