@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardHeader, CardTitle, CardDescription, CardFooter, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 
 export const metadata: Metadata = {
   title: "Agentic AI Guides",

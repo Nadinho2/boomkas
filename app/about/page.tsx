@@ -13,6 +13,14 @@ export const metadata: Metadata = {
       "Boomkas is an independent platform comparing the best agentic AI tools in 2026. Learn how we research, rate, and recommend tools.",
     url: "https://boomkas.com/about",
     type: "website",
+    images: [{ url: "https://boomkas.com/og.png", alt: "Boomkas" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "About Boomkas — Independent Agentic AI Research",
+    description:
+      "Boomkas is an independent platform comparing the best agentic AI tools in 2026. Learn how we research, rate, and recommend tools.",
+    images: ["https://boomkas.com/og.png"],
   },
 };
 
@@ -125,4 +133,3 @@ export default function AboutPage() {
     </div>
   );
 }
-

@@ -20,6 +20,15 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Agentic AI Tool Comparisons",
     description: "Side-by-side breakdowns to help you pick the right tool.",
+    url: "https://boomkas.com/compare",
+    type: "website",
+    images: [{ url: "https://boomkas.com/og.png", alt: "Boomkas" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Agentic AI Tool Comparisons",
+    description: "Side-by-side breakdowns to help you pick the right tool.",
+    images: ["https://boomkas.com/og.png"],
   },
 };
 

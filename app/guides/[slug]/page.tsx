@@ -57,23 +57,23 @@ export default async function GuidesSlugPage({ params }: { params: Promise<{ slu
         {/* Content */}
         <article className="flex-1 prose prose-invert max-w-none prose-a:text-primary">
           <p className="lead text-xl text-muted-foreground mb-10">
-            Welcome to this comprehensive guide on {title.toLowerCase()}. In this article, we'll break down exactly what you need to know to get started and succeed.
+            Welcome to this comprehensive guide on {title.toLowerCase()}. In this article, we&apos;ll break down exactly what you need to know to get started and succeed.
           </p>
 
           <h2 id="section-1" className="text-2xl font-semibold mt-12 mb-6">1. Introduction to the topic</h2>
-          <p className="mb-6 leading-7">This is placeholder text for the first section. You'll learn the foundations of what makes this so important in the modern era of agentic AI. We see companies adopting this at a rapid pace.</p>
+          <p className="mb-6 leading-7">This is placeholder text for the first section. You&apos;ll learn the foundations of what makes this so important in the modern era of agentic AI. We see companies adopting this at a rapid pace.</p>
 
           <h2 id="section-2" className="text-2xl font-semibold mt-12 mb-6">2. Core concepts explained</h2>
           <p className="mb-6 leading-7">Understanding the fundamentals is key. In this section, we break down the complex jargon into simple, actionable mental models that you can apply immediately.</p>
 
           <h2 id="section-3" className="text-2xl font-semibold mt-12 mb-6">3. Step-by-step tutorial</h2>
-          <p className="mb-6 leading-7">Let's get practical. Here is how you can implement this yourself today without needing a PhD in computer science or a massive budget.</p>
+          <p className="mb-6 leading-7">Let&apos;s get practical. Here is how you can implement this yourself today without needing a PhD in computer science or a massive budget.</p>
 
           <h2 id="section-4" className="text-2xl font-semibold mt-12 mb-6">4. Common pitfalls</h2>
           <p className="mb-6 leading-7">Avoid these mistakes that 90% of beginners make when they first try to implement this workflow.</p>
 
           <h2 id="section-5" className="text-2xl font-semibold mt-12 mb-6">5. Next steps and resources</h2>
-          <p className="mb-6 leading-7">Now that you've mastered the basics, here is where you should go next to continue your journey into autonomous systems.</p>
+          <p className="mb-6 leading-7">Now that you&apos;ve mastered the basics, here is where you should go next to continue your journey into autonomous systems.</p>
         </article>
       </div>
 

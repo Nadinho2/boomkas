@@ -18,17 +18,25 @@ function getSupabaseEnv() {
   return { url, anonKey };
 }
 
+type RequestWithGeo = NextRequest & {
+  geo?: {
+    country?: string;
+  };
+};
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // --- GEO TARGETING ---
-  const geo = (request as any).geo;
-  const country = geo?.country || "US";
+  const country =
+    (request as RequestWithGeo).geo?.country ??
+    request.headers.get("x-vercel-ip-country") ??
+    "US";
   const region = COUNTRY_REGION_MAP[country] || "us";
 
   // --- AUTH ---
   const { url, anonKey } = getSupabaseEnv();
-  let response = NextResponse.next({
+  const response = NextResponse.next({
     request: { headers: request.headers },
   });
 

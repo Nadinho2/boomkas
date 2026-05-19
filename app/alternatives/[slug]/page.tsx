@@ -41,7 +41,7 @@ export default async function AlternativesSlugPage({ params }: { params: Promise
         Best {toolName} Alternatives in 2026
       </h1>
       <p className="text-lg text-muted-foreground leading-7 mb-12">
-        While {toolName} is a popular choice, it's not the only option. Whether you are looking for better pricing, more advanced features, or an easier interface, these are the top alternatives you should consider switching to this year.
+        While {toolName} is a popular choice, it&apos;s not the only option. Whether you are looking for better pricing, more advanced features, or an easier interface, these are the top alternatives you should consider switching to this year.
       </p>
 
       <div className="space-y-8 mb-16">

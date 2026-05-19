@@ -19,14 +19,18 @@ export const metadata: Metadata = {
       "In-depth tutorials, tool comparisons, strategies, and insights to master agentic AI in 2026.",
     url: "https://boomkas.com/blog",
     type: "website",
+    images: [{ url: "https://boomkas.com/og.png", alt: "Boomkas" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Agentic AI Blog & Guides 2026 | Boomkas",
     description:
       "In-depth tutorials, tool comparisons, strategies, and insights to master agentic AI in 2026.",
+    images: ["https://boomkas.com/og.png"],
   },
 };
+
+const HIDDEN_POST_SLUGS = new Set(["extra-prevention-tip-recommended"]);
 
 type BlogCategory =
   | "All"
@@ -134,6 +138,7 @@ export default async function BlogIndexPage({
   const pageSize = 9;
 
   const fromDb: BlogPost[] = (dbPosts ?? [])
+    .filter((p) => !HIDDEN_POST_SLUGS.has(String(p?.slug ?? "")))
     .filter((p) => typeof p?.slug === "string" && p.slug.length > 0)
     .map((p) => {
       const title = (p.title as string | null) ?? "Untitled";
@@ -159,7 +164,9 @@ export default async function BlogIndexPage({
     });
 
   const postsBySlug = new Map<string, BlogPost>();
-  STATIC_POSTS.forEach((p) => postsBySlug.set(p.slug, p));
+  STATIC_POSTS.forEach((p) => {
+    if (!HIDDEN_POST_SLUGS.has(p.slug)) postsBySlug.set(p.slug, p);
+  });
   fromDb.forEach((p) => {
     if (!postsBySlug.has(p.slug)) postsBySlug.set(p.slug, p);
   });

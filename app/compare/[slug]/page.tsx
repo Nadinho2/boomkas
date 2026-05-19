@@ -48,7 +48,7 @@ export default async function CompareSlugPage({ params }: { params: Promise<{ sl
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground">
-            Both tools are excellent, but {toolA} wins for developer experience while {toolB} is better for non-technical users. Choose based on your team's background.
+            Both tools are excellent, but {toolA} wins for developer experience while {toolB} is better for non-technical users. Choose based on your team&apos;s background.
           </p>
         </CardContent>
       </Card>
@@ -96,7 +96,7 @@ export default async function CompareSlugPage({ params }: { params: Promise<{ sl
       <div className="mb-12">
         <h2 className="text-2xl font-semibold mb-4">Our verdict</h2>
         <p className="text-muted-foreground leading-7">
-          Ultimately, the choice between these two platforms comes down to your primary use case. If you need deep technical control and don't mind a steeper learning curve, {toolA} is the way to go. If you prioritize ease of use and rapid deployment, {toolB} will serve you better.
+          Ultimately, the choice between these two platforms comes down to your primary use case. If you need deep technical control and don&apos;t mind a steeper learning curve, {toolA} is the way to go. If you prioritize ease of use and rapid deployment, {toolB} will serve you better.
         </p>
       </div>
 

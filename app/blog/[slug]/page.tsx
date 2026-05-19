@@ -57,6 +57,8 @@ const AUTHOR = "Boomkas Team";
 const HERO_PLACEHOLDER =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='900'%3E%3Cdefs%3E%3CradialGradient id='a' cx='20%25' cy='10%25' r='70%25'%3E%3Cstop offset='0%25' stop-color='rgba(0,240,255,0.35)'/%3E%3Cstop offset='60%25' stop-color='rgba(0,0,0,0)'/%3E%3C/radialGradient%3E%3CradialGradient id='b' cx='90%25' cy='70%25' r='70%25'%3E%3Cstop offset='0%25' stop-color='rgba(255,107,0,0.28)'/%3E%3Cstop offset='60%25' stop-color='rgba(0,0,0,0)'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='1600' height='900' fill='rgb(6,10,20)'/%3E%3Crect width='1600' height='900' fill='url(%23a)'/%3E%3Crect width='1600' height='900' fill='url(%23b)'/%3E%3C/svg%3E";
 
+const HIDDEN_POST_SLUGS = new Set(["extra-prevention-tip-recommended"]);
+
 function H2({ id, children }: { id: string; children: ReactNode }) {
   return (
     <h2 id={id} className="scroll-mt-24 text-xl font-semibold tracking-tight sm:text-2xl">
@@ -1154,6 +1156,7 @@ function renderTextContent(text: string | null | undefined) {
 }
 
 async function getDbPostBySlug(slug: string): Promise<BlogPost | null> {
+  if (HIDDEN_POST_SLUGS.has(slug)) return null;
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("posts")

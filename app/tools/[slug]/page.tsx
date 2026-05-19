@@ -3070,11 +3070,13 @@ export async function generateMetadata({
         description,
         url: `https://boomkas.com/tools/${dbTool.slug}`,
         type: "article",
+        images: [{ url: "https://boomkas.com/og.png", alt: "Boomkas" }],
       },
       twitter: {
         card: "summary_large_image",
         title: `${title} — Boomkas`,
         description,
+        images: ["https://boomkas.com/og.png"],
       },
     };
   }
@@ -3093,11 +3095,13 @@ export async function generateMetadata({
       description,
       url: `https://boomkas.com/tools/${tool.slug}`,
       type: "article",
+      images: [{ url: "https://boomkas.com/og.png", alt: "Boomkas" }],
     },
     twitter: {
       card: "summary_large_image",
       title: `${title} — Boomkas`,
       description,
+      images: ["https://boomkas.com/og.png"],
     },
   };
 }
