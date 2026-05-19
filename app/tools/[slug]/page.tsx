@@ -5,6 +5,8 @@ import type { ReactNode } from "react";
 import { Star } from "lucide-react";
 
 import { AgentSimulator } from "@/components/AgentSimulator";
+import { ToolSchema } from "@/components/schema/ToolSchema";
+import { BreadcrumbSchema } from "@/components/schema/BreadcrumbSchema";
 import { cn } from "@/lib/utils";
 import { createSupabaseServerClient } from "@/lib/supabase";
 import { Badge } from "@/components/ui/badge";
@@ -3272,30 +3274,12 @@ export default async function ToolReviewPage({
 
   const related = pickRelatedTools(tool);
 
-  const softwareApplicationJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: tool.name,
-    applicationCategory:
-      tool.categories.includes("IDE Agents") || tool.categories.includes("Coding Agents")
-        ? "DeveloperApplication"
-        : "BusinessApplication",
-    operatingSystem: "Web, macOS, Windows, Linux",
-    url: tool.website,
-    offers: {
-      "@type": "Offer",
-      price: getOfferPrice(tool.pricing),
-      priceCurrency: "USD",
-      category: "subscription",
-    },
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: tool.rating,
-      ratingCount: tool.ratingCount,
-      bestRating: 5,
-      worstRating: 1,
-    },
-  };
+  const applicationCategory =
+    tool.categories.includes("IDE Agents") || tool.categories.includes("Coding Agents")
+      ? "DeveloperApplication"
+      : "BusinessApplication";
+  const toolUrl = tool.website;
+  const price = getOfferPrice(tool.pricing);
 
   const reviewJsonLd = {
     "@context": "https://schema.org",
@@ -3332,9 +3316,23 @@ export default async function ToolReviewPage({
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 sm:py-16">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareApplicationJsonLd) }}
+      <ToolSchema
+        name={tool.name}
+        description={tool.metaDescription ?? tool.tagline}
+        url={toolUrl}
+        applicationCategory={applicationCategory}
+        operatingSystem="Web, macOS, Windows, Linux"
+        price={price}
+        priceCurrency="USD"
+        ratingValue={tool.rating}
+        ratingCount={tool.ratingCount}
+      />
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: "https://boomkas.com" },
+          { name: "Tools", url: "https://boomkas.com/tools" },
+          { name: tool.name, url: `https://boomkas.com/tools/${tool.slug}` },
+        ]}
       />
       <script
         type="application/ld+json"

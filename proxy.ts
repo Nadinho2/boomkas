@@ -1,6 +1,16 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
+const COUNTRY_REGION_MAP: Record<string, string> = {
+  US: "us",
+  GB: "uk",
+  CA: "ca",
+  AU: "au",
+  IN: "in",
+  SG: "sg",
+  NG: "ng",
+};
+
 function getSupabaseEnv() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
   const anonKey =
@@ -9,49 +19,72 @@ function getSupabaseEnv() {
 }
 
 export async function proxy(request: NextRequest) {
-  const { url, anonKey } = getSupabaseEnv();
   const { pathname } = request.nextUrl;
 
-  if (!url || !anonKey) {
-    return NextResponse.next();
-  }
+  // --- GEO TARGETING ---
+  const geo = (request as any).geo;
+  const country = geo?.country || "US";
+  const region = COUNTRY_REGION_MAP[country] || "us";
 
-  const response = NextResponse.next({
+  // --- AUTH ---
+  const { url, anonKey } = getSupabaseEnv();
+  let response = NextResponse.next({
     request: { headers: request.headers },
   });
 
-  const supabase = createServerClient(url, anonKey, {
-    cookies: {
-      getAll() {
-        return request.cookies.getAll();
-      },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) => {
-          response.cookies.set(name, value, options);
-        });
-      },
-    },
-  });
+  // Apply geo headers
+  response.headers.set("x-user-region", region);
+  response.headers.set("x-user-country", country);
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (pathname === "/admin/login") {
-    if (user) {
-      return NextResponse.redirect(new URL("/admin", request.url));
-    }
-    return response;
+  // Set geo cookie if not already set
+  if (!request.cookies.has("boomkas-region")) {
+    response.cookies.set("boomkas-region", region, {
+      maxAge: 30 * 24 * 60 * 60,
+      path: "/",
+    });
   }
 
-  if (!user) {
-    return NextResponse.redirect(new URL("/admin/login", request.url));
+  // Only run auth logic for admin routes
+  const isAdminRoute = pathname.startsWith("/admin");
+  if (isAdminRoute) {
+    if (!url || !anonKey) {
+      return response;
+    }
+
+    const supabase = createServerClient(url, anonKey, {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            response.cookies.set(name, value, options);
+          });
+        },
+      },
+    });
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (pathname === "/admin/login") {
+      if (user) {
+        return NextResponse.redirect(new URL("/admin", request.url));
+      }
+      return response;
+    }
+
+    if (!user) {
+      return NextResponse.redirect(new URL("/admin/login", request.url));
+    }
   }
 
   return response;
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: [
+    '/((?!api|_next/static|_next/image|favicon\\.ico|.*\\.).*)',
+  ],
 };
-

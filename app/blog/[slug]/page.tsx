@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { createSupabaseServerClient } from "@/lib/supabase";
+import { ArticleSchema } from "@/components/schema/ArticleSchema";
+import { BreadcrumbSchema } from "@/components/schema/BreadcrumbSchema";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -1251,21 +1253,25 @@ export default async function BlogPostPage({
   const related = pickRelatedPosts(post);
   const url = `https://boomkas.com/blog/${post.slug}`;
 
-  const articleJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    headline: post.title,
-    description: post.description,
-    datePublished: post.dateISO,
-    dateModified: post.dateISO,
-    author: { "@type": "Organization", name: post.author },
-    publisher: { "@type": "Organization", name: "Boomkas" },
-    mainEntityOfPage: { "@type": "WebPage", "@id": url },
-    image: [post.heroImageDataUri],
-  };
-
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+      <ArticleSchema
+        title={post.title}
+        description={post.description}
+        url={url}
+        datePublished={post.dateISO}
+        dateModified={post.dateISO}
+        authorName={post.author}
+        imageUrl={post.heroImageDataUri}
+      />
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: "https://boomkas.com" },
+          { name: "Blog", url: "https://boomkas.com/blog" },
+          { name: post.title, url: url },
+        ]}
+      />
+
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
         <ol className="flex flex-wrap items-center gap-2">
           <li>
@@ -1287,8 +1293,6 @@ export default async function BlogPostPage({
           <li className="text-foreground">{post.title}</li>
         </ol>
       </nav>
-
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
 
       <div className="mt-6 overflow-hidden rounded-3xl bg-white/[0.02] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]">
         <div className="relative">

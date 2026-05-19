@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import Script from "next/script";
+import { WebSiteSchema } from "@/components/schema/WebSiteSchema";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -56,6 +57,17 @@ export const metadata: Metadata = {
       "Discover, compare, and master the best agentic AI tools that plan, reason, and execute workflows autonomously.",
     images: ["/og.png"],
   },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 };
 
 export default function RootLayout({
@@ -70,6 +82,19 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
     >
+      <head>
+        <link rel="alternate" hrefLang="en-us" href="https://boomkas.com" />
+        <link rel="alternate" hrefLang="en-gb" href="https://boomkas.com" />
+        <link rel="alternate" hrefLang="en-ca" href="https://boomkas.com" />
+        <link rel="alternate" hrefLang="en-au" href="https://boomkas.com" />
+        <link rel="alternate" hrefLang="en-in" href="https://boomkas.com" />
+        <link rel="alternate" hrefLang="en-sg" href="https://boomkas.com" />
+        <link rel="alternate" hrefLang="x-default" href="https://boomkas.com" />
+        <meta name="geo.region" content="US" />
+        <meta name="geo.placename" content="United States" />
+        <meta name="language" content="English" />
+        <WebSiteSchema />
+      </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">
         {gaId ? (
           <>
@@ -109,6 +134,10 @@ export default function RootLayout({
             <nav aria-label="Primary" className="hidden items-center gap-1 sm:flex">
               <NavLink href="/">Home</NavLink>
               <NavLink href="/tools">Tools</NavLink>
+              <NavLink href="/compare">Compare</NavLink>
+              <NavLink href="/alternatives">Alternatives</NavLink>
+              <NavLink href="/guides">Guides</NavLink>
+              <NavLink href="/use-cases">Use Cases</NavLink>
               <NavLink href="/blog">Blog</NavLink>
             </nav>
 
@@ -120,6 +149,10 @@ export default function RootLayout({
                 <div className="absolute right-0 top-12 z-50 w-48 rounded-2xl border border-border/70 bg-card/95 p-2 shadow-[0_0_0_1px_rgba(255,255,255,0.06),0_25px_70px_rgba(0,0,0,0.55)] backdrop-blur">
                   <MobileNavLink href="/">Home</MobileNavLink>
                   <MobileNavLink href="/tools">Tools</MobileNavLink>
+                  <MobileNavLink href="/compare">Compare</MobileNavLink>
+                  <MobileNavLink href="/alternatives">Alternatives</MobileNavLink>
+                  <MobileNavLink href="/guides">Guides</MobileNavLink>
+                  <MobileNavLink href="/use-cases">Use Cases</MobileNavLink>
                   <MobileNavLink href="/blog">Blog</MobileNavLink>
                 </div>
               </details>
