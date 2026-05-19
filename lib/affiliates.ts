@@ -49,6 +49,36 @@ const AFFILIATE_SEEDS: AffiliateSeed[] = [
   { slug: "airops", name: "AirOps", officialUrl: "https://www.airops.com", rating: 4.0, hasFreeTier: false },
   { slug: "bardeen", name: "Bardeen", officialUrl: "https://www.bardeen.ai", rating: 4.0, hasFreeTier: true },
   { slug: "asana-ai-studio", name: "Asana AI Studio", officialUrl: "https://asana.com", rating: 4.0, hasFreeTier: false },
+  { slug: "bolt-new", name: "Bolt.new", officialUrl: "https://bolt.new", rating: 4.39, hasFreeTier: true },
+  { slug: "replit-agent", name: "Replit Agent", officialUrl: "https://replit.com", rating: 4.3, hasFreeTier: true },
+  { slug: "v0-vercel", name: "v0 by Vercel", officialUrl: "https://v0.dev", rating: 4.2, hasFreeTier: true },
+  {
+    slug: "github-copilot",
+    name: "GitHub Copilot",
+    officialUrl: "https://github.com/features/copilot",
+    rating: 4.3,
+    hasFreeTier: true,
+  },
+  { slug: "gemini-cli", name: "Gemini CLI", officialUrl: "https://github.com/google-gemini/gemini-cli", rating: 4.1, hasFreeTier: true },
+  { slug: "dify-ai", name: "Dify.ai", officialUrl: "https://dify.ai", rating: 4.3, hasFreeTier: true },
+  { slug: "flowise", name: "Flowise", officialUrl: "https://flowiseai.com", rating: 4.1, hasFreeTier: true },
+  { slug: "dust-tt", name: "Dust.tt", officialUrl: "https://dust.tt", rating: 4.1, hasFreeTier: true },
+  { slug: "sierra", name: "Sierra", officialUrl: "https://sierra.ai", rating: 4.2, hasFreeTier: false },
+  {
+    slug: "servicenow-ai-agents",
+    name: "ServiceNow AI Agents",
+    officialUrl: "https://www.servicenow.com/products/ai-agents.html",
+    rating: 4.1,
+    hasFreeTier: false,
+  },
+  {
+    slug: "vertex-ai-agent-builder",
+    name: "Google Vertex AI Agent Builder",
+    officialUrl: "https://cloud.google.com/products/agent-builder",
+    rating: 4.2,
+    hasFreeTier: true,
+  },
+  { slug: "coze", name: "Coze", officialUrl: "https://www.coze.com", rating: 4.1, hasFreeTier: true },
 ];
 
 const BEST_DEAL_SLUGS = new Set(
@@ -83,4 +113,3 @@ export const AFFILIATES: Record<string, AffiliateEntry> = Object.fromEntries(
 export function getAffiliateLink(slug: string): AffiliateEntry | null {
   return AFFILIATES[slug] ?? null;
 }
-
