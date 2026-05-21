@@ -2,14 +2,23 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { AffiliateButton } from "@/components/AffiliateButton";
+import { BreadcrumbSchema } from "@/components/schema/BreadcrumbSchema";
+import { canonicalAlternates, canonicalUrl, generateMetaDescription } from "@/lib/seo";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
+  const title = `${slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())} Comparison`;
+  const description = generateMetaDescription({
+    title,
+    description:
+      "Side-by-side comparison with pricing, autonomy, key differences, and recommendations so you can pick the best tool for your workflow.",
+  });
+  const url = canonicalUrl(`/compare/${slug}`);
   return {
-    title: `${slug} Comparison`,
-    description: `Detailed comparison for ${slug}.`,
+    title,
+    description,
     alternates: {
-      canonical: `/compare/${slug}`,
+      ...canonicalAlternates(`/compare/${slug}`),
       languages: {
         "en-US": `https://boomkas.com/compare/${slug}`,
         "en-GB": `https://boomkas.com/compare/${slug}`,
@@ -18,6 +27,19 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         "en-IN": `https://boomkas.com/compare/${slug}`,
         "en-SG": `https://boomkas.com/compare/${slug}`,
       },
+    },
+    openGraph: {
+      title,
+      description,
+      url,
+      type: "article",
+      images: [{ url: "https://boomkas.com/og.png", alt: "Boomkas" }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: ["https://boomkas.com/og.png"],
     },
   };
 }
@@ -32,6 +54,13 @@ export default async function CompareSlugPage({ params }: { params: Promise<{ sl
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-14 sm:px-6 sm:py-20">
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: canonicalUrl("/") },
+          { name: "Compare", url: canonicalUrl("/compare") },
+          { name: `${toolA} vs ${toolB}`, url: canonicalUrl(`/compare/${slug}`) },
+        ]}
+      />
       <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl text-center mb-8">
         {toolA} vs {toolB}: Which Is Better in 2026?
       </h1>

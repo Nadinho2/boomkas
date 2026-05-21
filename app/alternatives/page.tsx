@@ -2,12 +2,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { BreadcrumbSchema } from "@/components/schema/BreadcrumbSchema";
+import { canonicalAlternates, canonicalUrl, generateMetaDescription } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Best Alternatives to Popular Agentic AI Tools",
-  description: "Already using a tool and looking for something better? Start here.",
+  description: generateMetaDescription({
+    title: "Best Alternatives to Popular Agentic AI Tools",
+    description:
+      "Already using a tool and looking for something better? Explore curated alternatives with pricing, key differences, and guidance on which option fits your workflow best.",
+  }),
   alternates: {
-    canonical: "/alternatives",
+    ...canonicalAlternates("/alternatives"),
     languages: {
       "en-US": "https://boomkas.com/alternatives",
       "en-GB": "https://boomkas.com/alternatives",
@@ -16,6 +22,27 @@ export const metadata: Metadata = {
       "en-IN": "https://boomkas.com/alternatives",
       "en-SG": "https://boomkas.com/alternatives",
     },
+  },
+  openGraph: {
+    title: "Best Alternatives to Popular Agentic AI Tools",
+    description: generateMetaDescription({
+      title: "Best Alternatives to Popular Agentic AI Tools",
+      description:
+        "Already using a tool and looking for something better? Explore curated alternatives with pricing, key differences, and guidance on which option fits your workflow best.",
+    }),
+    url: canonicalUrl("/alternatives"),
+    type: "website",
+    images: [{ url: "https://boomkas.com/og.png", alt: "Boomkas" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Best Alternatives to Popular Agentic AI Tools",
+    description: generateMetaDescription({
+      title: "Best Alternatives to Popular Agentic AI Tools",
+      description:
+        "Already using a tool and looking for something better? Explore curated alternatives with pricing, key differences, and guidance on which option fits your workflow best.",
+    }),
+    images: ["https://boomkas.com/og.png"],
   },
 };
 
@@ -33,6 +60,12 @@ const ALTERNATIVES = [
 export default function AlternativesIndexPage() {
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: canonicalUrl("/") },
+          { name: "Alternatives", url: canonicalUrl("/alternatives") },
+        ]}
+      />
       <div className="mb-10">
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
           Best Alternatives to Popular Agentic AI Tools

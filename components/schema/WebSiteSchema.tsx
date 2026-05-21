@@ -1,3 +1,5 @@
+import { JsonLd } from "@/components/schema/JsonLd";
+
 export function WebSiteSchema() {
   const schema = {
     "@context": "https://schema.org",
@@ -15,10 +17,5 @@ export function WebSiteSchema() {
     },
   };
 
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-    />
-  );
+  return <JsonLd data={schema} />;
 }

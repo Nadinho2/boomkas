@@ -3,29 +3,42 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { createSupabaseServerClient } from "@/lib/supabase";
+import { sanityFetchPublishedPosts } from "@/lib/sanity";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { BreadcrumbSchema } from "@/components/schema/BreadcrumbSchema";
+import { canonicalAlternates, canonicalUrl, generateMetaDescription } from "@/lib/seo";
+import { StarRating } from "@/components/blog/StarRating";
 
 export const metadata: Metadata = {
   title: "Agentic AI Blog & Guides 2026 | Boomkas",
-  description:
-    "In-depth tutorials, tool comparisons, strategies, and insights to master agentic AI in 2026.",
-  alternates: { canonical: "/blog" },
+  description: generateMetaDescription({
+    title: "Agentic AI Blog & Guides 2026",
+    description:
+      "In-depth tutorials, tool comparisons, strategies, and insights to master agentic AI in 2026 with actionable workflows, pricing context, and practical recommendations.",
+  }),
+  alternates: canonicalAlternates("/blog"),
   openGraph: {
     title: "Agentic AI Blog & Guides 2026 | Boomkas",
-    description:
-      "In-depth tutorials, tool comparisons, strategies, and insights to master agentic AI in 2026.",
-    url: "https://boomkas.com/blog",
+    description: generateMetaDescription({
+      title: "Agentic AI Blog & Guides 2026",
+      description:
+        "In-depth tutorials, tool comparisons, strategies, and insights to master agentic AI in 2026 with actionable workflows, pricing context, and practical recommendations.",
+    }),
+    url: canonicalUrl("/blog"),
     type: "website",
     images: [{ url: "https://boomkas.com/og.png", alt: "Boomkas" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Agentic AI Blog & Guides 2026 | Boomkas",
-    description:
-      "In-depth tutorials, tool comparisons, strategies, and insights to master agentic AI in 2026.",
+    description: generateMetaDescription({
+      title: "Agentic AI Blog & Guides 2026",
+      description:
+        "In-depth tutorials, tool comparisons, strategies, and insights to master agentic AI in 2026 with actionable workflows, pricing context, and practical recommendations.",
+    }),
     images: ["https://boomkas.com/og.png"],
   },
 };
@@ -50,6 +63,7 @@ type BlogPost = {
   category: Exclude<BlogCategory, "All">;
   featured?: boolean;
   popularityScore: number;
+  starRating?: number;
 };
 
 const CATEGORIES: BlogCategory[] = [
@@ -120,12 +134,20 @@ export default async function BlogIndexPage({
 }: {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const supabase = await createSupabaseServerClient();
-  const { data: dbPosts } = await supabase
-    .from("posts")
-    .select("slug,title,excerpt,content,category,status,published_at,updated_at,created_at")
-    .eq("status", "published")
-    .order("published_at", { ascending: false });
+  let dbPosts: Array<Record<string, unknown>> = [];
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data } = await supabase
+      .from("posts")
+      .select("slug,title,excerpt,content,category,status,published_at,updated_at,created_at")
+      .eq("status", "published")
+      .order("published_at", { ascending: false });
+    dbPosts = (data as Array<Record<string, unknown>> | null) ?? [];
+  } catch {
+    dbPosts = [];
+  }
+
+  const sanityPosts = await sanityFetchPublishedPosts({ limit: 1000 }).catch(() => []);
 
   const sp = (await searchParams) ?? {};
   const qRaw = Array.isArray(sp.q) ? sp.q[0] : sp.q;
@@ -135,7 +157,7 @@ export default async function BlogIndexPage({
   const q = (qRaw ?? "").slice(0, 120);
   const selectedCategory = (categoryRaw ?? "All") as BlogCategory;
   const page = Math.max(1, Number(pageRaw ?? "1") || 1);
-  const pageSize = 9;
+  const pageSize = 12;
 
   const fromDb: BlogPost[] = (dbPosts ?? [])
     .filter((p) => !HIDDEN_POST_SLUGS.has(String(p?.slug ?? "")))
@@ -163,9 +185,30 @@ export default async function BlogIndexPage({
       };
     });
 
+  const fromSanity: BlogPost[] = (sanityPosts ?? [])
+    .filter((p) => !HIDDEN_POST_SLUGS.has(p.slug))
+    .map((p) => {
+      const title = p.title ?? p.slug;
+      const excerpt = (p.metaDescription ?? "").trim() || "—";
+      const dateISO = p.publishedAt ?? p._updatedAt ?? new Date().toISOString();
+      return {
+        slug: p.slug,
+        title,
+        excerpt,
+        dateISO,
+        readingMinutes: readingMinutesFromText([title, excerpt].join(" ")),
+        category: safeCategory(p.category ?? "Tool Comparisons"),
+        popularityScore: 0,
+        starRating: p.starRating,
+      };
+    });
+
   const postsBySlug = new Map<string, BlogPost>();
   STATIC_POSTS.forEach((p) => {
     if (!HIDDEN_POST_SLUGS.has(p.slug)) postsBySlug.set(p.slug, p);
+  });
+  fromSanity.forEach((p) => {
+    if (!postsBySlug.has(p.slug)) postsBySlug.set(p.slug, p);
   });
   fromDb.forEach((p) => {
     if (!postsBySlug.has(p.slug)) postsBySlug.set(p.slug, p);
@@ -184,8 +227,12 @@ export default async function BlogIndexPage({
   })
     .sort((a, b) => (a.dateISO < b.dateISO ? 1 : -1));
 
-  const visible = filtered.slice(0, page * pageSize);
-  const canLoadMore = visible.length < filtered.length;
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const start = (safePage - 1) * pageSize;
+  const visible = filtered.slice(start, start + pageSize);
+  const hasPrev = safePage > 1;
+  const hasNext = safePage < totalPages;
 
   const popular = [...allPosts]
     .sort((a, b) => b.popularityScore - a.popularityScore)
@@ -214,14 +261,26 @@ export default async function BlogIndexPage({
     );
   });
 
-  const loadMoreHref = `/blog${buildQuery({
+  const prevHref = `/blog${buildQuery({
     q: q ? q : undefined,
     category: selectedCategory === "All" ? undefined : selectedCategory,
-    page: String(page + 1),
+    page: String(Math.max(1, safePage - 1)),
+  })}`;
+
+  const nextHref = `/blog${buildQuery({
+    q: q ? q : undefined,
+    category: selectedCategory === "All" ? undefined : selectedCategory,
+    page: String(safePage + 1),
   })}`;
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: canonicalUrl("/") },
+          { name: "Blog", url: canonicalUrl("/blog") },
+        ]}
+      />
       <div className="relative overflow-hidden rounded-3xl bg-white/[0.02] px-6 py-10 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)] sm:px-10">
         <div
           aria-hidden
@@ -298,6 +357,7 @@ export default async function BlogIndexPage({
                 <CardHeader className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge variant="default">{post.category}</Badge>
+                    {typeof post.starRating === "number" ? <StarRating value={post.starRating} /> : null}
                     <div className="text-xs text-muted-foreground">
                       {formatDate(post.dateISO)} • {post.readingMinutes} min read
                     </div>
@@ -329,13 +389,29 @@ export default async function BlogIndexPage({
           </div>
 
           <div className="mt-8 flex items-center justify-center">
-            {canLoadMore ? (
-              <Button asChild size="lg" variant="secondary">
-                <Link href={loadMoreHref}>Load More</Link>
-              </Button>
-            ) : (
-              <div className="text-sm text-muted-foreground">You’ve reached the end.</div>
-            )}
+            <div className="flex items-center gap-3">
+              {hasPrev ? (
+                <Button asChild size="lg" variant="secondary">
+                  <Link href={prevHref}>Previous</Link>
+                </Button>
+              ) : (
+                <Button size="lg" variant="secondary" disabled>
+                  Previous
+                </Button>
+              )}
+              <div className="text-sm text-muted-foreground">
+                Page <span className="text-foreground">{safePage}</span> / {totalPages}
+              </div>
+              {hasNext ? (
+                <Button asChild size="lg" variant="secondary">
+                  <Link href={nextHref}>Next</Link>
+                </Button>
+              ) : (
+                <Button size="lg" variant="secondary" disabled>
+                  Next
+                </Button>
+              )}
+            </div>
           </div>
         </div>
 

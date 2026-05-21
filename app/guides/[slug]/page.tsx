@@ -2,15 +2,22 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { BreadcrumbSchema } from "@/components/schema/BreadcrumbSchema";
+import { canonicalAlternates, canonicalUrl, generateMetaDescription } from "@/lib/seo";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const title = slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  const metaTitle = `${title} | Agentic AI Guide`;
+  const description = generateMetaDescription({
+    title: metaTitle,
+    description: `Learn ${title.toLowerCase()} with a practical, step-by-step guide including examples, common pitfalls, and next steps for building agentic AI workflows.`,
+  });
   return {
-    title: `${title} | Agentic AI Guide`,
-    description: `Learn everything about ${title.toLowerCase()} in this comprehensive guide.`,
+    title: metaTitle,
+    description,
     alternates: {
-      canonical: `/guides/${slug}`,
+      ...canonicalAlternates(`/guides/${slug}`),
       languages: {
         "en-US": `https://boomkas.com/guides/${slug}`,
         "en-GB": `https://boomkas.com/guides/${slug}`,
@@ -19,6 +26,19 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         "en-IN": `https://boomkas.com/guides/${slug}`,
         "en-SG": `https://boomkas.com/guides/${slug}`,
       },
+    },
+    openGraph: {
+      title: metaTitle,
+      description,
+      url: canonicalUrl(`/guides/${slug}`),
+      type: "article",
+      images: [{ url: "https://boomkas.com/og.png", alt: "Boomkas" }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: metaTitle,
+      description,
+      images: ["https://boomkas.com/og.png"],
     },
   };
 }
@@ -29,6 +49,13 @@ export default async function GuidesSlugPage({ params }: { params: Promise<{ slu
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: canonicalUrl("/") },
+          { name: "Guides", url: canonicalUrl("/guides") },
+          { name: title, url: canonicalUrl(`/guides/${slug}`) },
+        ]}
+      />
       <div className="max-w-3xl mb-12">
         <div className="flex items-center gap-3 mb-6">
           <Badge variant="cyan">Beginner</Badge>

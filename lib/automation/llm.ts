@@ -13,6 +13,7 @@ export type GeneratedPost = {
     | "Beginner Guides"
     | "Tool Comparisons"
     | "Productivity Tips";
+  intent: "Informational" | "Commercial" | "Navigational";
   contentMarkdown: string;
   affiliateToolSlugs: string[];
   internalLinks: Array<{ label: string; href: string }>;
@@ -66,6 +67,11 @@ function safeParseGeneratedPost(keyword: string, jsonText: string): GeneratedPos
       ? parsed.category
       : "Tool Comparisons";
 
+  const intent =
+    parsed.intent === "Informational" || parsed.intent === "Commercial" || parsed.intent === "Navigational"
+      ? parsed.intent
+      : "Commercial";
+
   if (!title || !metaDescription || !excerpt || !contentMarkdown) {
     throw new Error("Generated JSON missing required fields");
   }
@@ -77,6 +83,7 @@ function safeParseGeneratedPost(keyword: string, jsonText: string): GeneratedPos
     metaDescription,
     excerpt,
     category,
+    intent,
     contentMarkdown,
     affiliateToolSlugs,
     internalLinks,
@@ -94,25 +101,55 @@ function buildPrompt(input: {
 
   return [
     "You are writing for Boomkas (boomkas.com), an AI tools review + affiliate blog.",
-    "Write an SEO-optimized post targeting the given keyword in the agentic AI tools niche.",
+    "Write a Helpful Content System optimized post targeting the given keyword in the agentic AI tools niche.",
     "Return ONLY valid JSON. No markdown fences. No commentary.",
     "",
     "Keyword:",
     input.keyword,
     "",
+    "Title rules:",
+    "- Unique title, primary keyword near the start, include current year.",
+    "- Target 50–60 characters.",
+    '- Format: \"[Primary Keyword] Review (2026): [Unique Value Proposition]\" when commercial intent.',
+    "",
     "Internal links requirement:",
-    "- Provide 3–6 internalLinks objects with {label, href}.",
-    `- href must be relative and start with /blog/ or /tools/. Site base is ${input.siteUrl}.`,
+    "- Provide 5–8 internalLinks objects with {label, href}.",
+    `- href must be relative and start with /blog/, /tools/, /categories/, /use-cases/, /guides/, or /compare/. Site base is ${input.siteUrl}.`,
     `- Use existing slugs where possible. Known tool slugs: ${toolSlugs || "(none)"}. Known blog slugs: ${blogSlugs || "(none)"}.`,
+    "- Include at least one internal link to a relevant topic hub under /categories/ (AI Writing Tools, AI Image Tools, AI Coding Tools, AI Productivity Tools, or AI Marketing Tools).",
     "",
     "Affiliate CTA requirement:",
     "- Choose 1–3 affiliateToolSlugs that match the topic (from known tool slugs where possible).",
     "- In the post body, include at least 2 affiliate CTAs using the /go/<toolSlug> pattern as plain markdown links.",
     "",
+    "First-hand experience requirements:",
+    "- Include a dedicated H2 section titled exactly: Our Testing Process.",
+    "- Include a dedicated H2 section titled exactly: What We Found (with specific observations).",
+    "- Include a dedicated H2 section titled exactly: Unique Insight (one insight/stat/workflow not commonly found elsewhere).",
+    "- Near the top, include these exact lines:",
+    "  - Tested By: Boomkas Team (Hands-on testing across real workflows)",
+    "  - Last Tested: YYYY-MM-DD",
+    "  - Updated: YYYY-MM-DD",
+    "- Include at least one unique insight not commonly found elsewhere (a statistic, workflow trick, or perspective).",
+    "",
     "Content rules:",
-    "- Use markdown with H2/H3 headings, bullet lists, and one comparison table if relevant.",
-    "- Avoid medical/legal claims. Avoid hallucinated pricing; use ranges and qualifiers.",
-    "- Keep it helpful and specific to builders (developers, founders, teams).",
+    "- Minimum 1,500 words.",
+    "- Use markdown with H2/H3 headings, bullet lists, and at least one comparison table when relevant.",
+    "- Keep paragraphs to 1–3 sentences. Use clear, scannable headings.",
+    "- Avoid medical/legal claims.",
+    "- Do NOT invent pricing. If you cannot confirm a price, write \"Pricing needs verification\" and include the official pricing URL as a citation.",
+    "- Include citations with outbound links for any statistics or pricing claims.",
+    "",
+    "Required review sections for commercial intent:",
+    "- TL;DR (bulleted summary at top).",
+    "- Pricing Breakdown (include exact numbers ONLY if confirmed; otherwise mark as needs verification).",
+    "- Pros (at least 5) and Cons (at least 5).",
+    "- Who it is best for.",
+    "- Who should avoid it.",
+    "- Real use case examples.",
+    "- Comparison to at least one competitor (H2: Comparison).",
+    "- Final Verdict with a star rating (1–5) (H2: Final Verdict).",
+    "- FAQ section with at least 5 questions (H2: FAQ).",
     "",
     "Output JSON shape:",
     "{",
@@ -121,6 +158,7 @@ function buildPrompt(input: {
     '  \"metaDescription\": \"...\",',
     '  \"excerpt\": \"...\",',
     '  \"category\": \"Tool Comparisons\" | \"Coding Agents\" | \"Workflow Automation\" | \"Multi-Agent Systems\" | \"Beginner Guides\" | \"Productivity Tips\",',
+    '  \"intent\": \"Informational\" | \"Commercial\" | \"Navigational\",',
     '  \"contentMarkdown\": \"...\",',
     '  \"affiliateToolSlugs\": [\"...\"],',
     '  \"internalLinks\": [{\"label\":\"...\",\"href\":\"/tools/...\"}]',

@@ -59,6 +59,17 @@ export async function sanityUpsertPost(input: {
   contentMarkdown: string;
   publishedAtISO: string;
   keyword?: string;
+  intent: "Informational" | "Commercial" | "Navigational";
+  hasAffiliate: boolean;
+  affiliateToolSlugs: string[];
+  internalLinks: Array<{ label: string; href: string }>;
+  qualityScore: number;
+  qualityWordCount: number;
+  testedBy?: string;
+  lastTestedISO?: string;
+  updatedISO?: string;
+  topicCluster: string;
+  pillarPath: string;
 }): Promise<SanityPost> {
   const { projectId, dataset, apiVersion } = sanityBase();
   const mutationUrl = `https://${projectId}.api.sanity.io/v${apiVersion}/data/mutate/${dataset}`;
@@ -75,8 +86,23 @@ export async function sanityUpsertPost(input: {
         category: input.category,
         publishedAt: input.publishedAtISO,
         keyword: input.keyword ?? input.slug,
+        intent: input.intent,
         slug: { _type: "slug", current: input.slug },
         contentMarkdown: input.contentMarkdown,
+        hasAffiliate: input.hasAffiliate,
+        affiliateToolSlugs: input.affiliateToolSlugs,
+        internalLinks: input.internalLinks.map((l) => ({
+          _type: "internalLink",
+          label: l.label,
+          href: l.href,
+        })),
+        qualityScore: input.qualityScore,
+        qualityWordCount: input.qualityWordCount,
+        testedBy: input.testedBy,
+        lastTested: input.lastTestedISO,
+        updated: input.updatedISO,
+        topicCluster: input.topicCluster,
+        pillarPath: input.pillarPath,
       },
     },
   ];

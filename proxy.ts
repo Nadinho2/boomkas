@@ -27,6 +27,30 @@ type RequestWithGeo = NextRequest & {
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  const method = request.method.toUpperCase();
+  if (method === "GET" || method === "HEAD") {
+    const url = new URL(request.url);
+    const host = url.host.toLowerCase();
+    const proto = (request.headers.get("x-forwarded-proto") ?? url.protocol.replace(":", "")).toLowerCase();
+
+    const preferredHost = "boomkas.com";
+    const lowerPath = pathname.toLowerCase();
+    const normalizedPath =
+      lowerPath === "/" ? "/" : lowerPath.endsWith("/") ? lowerPath.slice(0, -1) : lowerPath;
+
+    const needsHost = host === `www.${preferredHost}`;
+    const needsHttps = proto !== "https";
+    const needsPath = pathname !== normalizedPath;
+
+    if (needsHost || needsHttps || needsPath) {
+      const destination = new URL(request.url);
+      destination.protocol = "https:";
+      destination.host = preferredHost;
+      destination.pathname = normalizedPath;
+      return NextResponse.redirect(destination, 308);
+    }
+  }
+
   // --- GEO TARGETING ---
   const country =
     (request as RequestWithGeo).geo?.country ??

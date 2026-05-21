@@ -1,5 +1,6 @@
 import { getAffiliateLink } from "@/lib/affiliates";
 import { cn } from "@/lib/utils";
+import { AffiliateLink } from "@/components/Links";
 
 export function AffiliateButton({
   slug,
@@ -31,15 +32,9 @@ export function AffiliateButton({
       : "bg-[rgba(0,240,255,0.12)] text-[color:var(--primary)] shadow-[inset_0_0_0_1px_rgba(0,240,255,0.22)]";
 
   return (
-    <a
-      href={`/go/${entry.slug}`}
-      target="_blank"
-      rel="nofollow noopener noreferrer"
-      className={cn(base, variantClass, sizeClass, className)}
-    >
+    <AffiliateLink href={`/go/${entry.slug}`} className={cn(base, variantClass, sizeClass, className)}>
       {entry.badge ? <span className={cn(badgeBase, badgeClass)}>{entry.badge}</span> : null}
       {entry.label}
-    </a>
+    </AffiliateLink>
   );
 }
-

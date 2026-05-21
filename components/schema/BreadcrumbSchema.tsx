@@ -1,3 +1,5 @@
+import { JsonLd } from "@/components/schema/JsonLd";
+
 export function BreadcrumbSchema({
   items,
 }: {
@@ -14,10 +16,5 @@ export function BreadcrumbSchema({
     })),
   };
 
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-    />
-  );
+  return <JsonLd data={schema} />;
 }

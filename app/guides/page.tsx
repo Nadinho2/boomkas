@@ -2,12 +2,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { BreadcrumbSchema } from "@/components/schema/BreadcrumbSchema";
+import { canonicalAlternates, canonicalUrl, generateMetaDescription } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Agentic AI Guides",
-  description: "New to AI agents? Start with these.",
+  description: generateMetaDescription({
+    title: "Agentic AI Guides",
+    description:
+      "New to AI agents? Start with these practical guides covering fundamentals, tool selection, workflow automation, and multi-agent systems with clear examples and checklists.",
+  }),
   alternates: {
-    canonical: "/guides",
+    ...canonicalAlternates("/guides"),
     languages: {
       "en-US": "https://boomkas.com/guides",
       "en-GB": "https://boomkas.com/guides",
@@ -16,6 +22,27 @@ export const metadata: Metadata = {
       "en-IN": "https://boomkas.com/guides",
       "en-SG": "https://boomkas.com/guides",
     },
+  },
+  openGraph: {
+    title: "Agentic AI Guides",
+    description: generateMetaDescription({
+      title: "Agentic AI Guides",
+      description:
+        "New to AI agents? Start with these practical guides covering fundamentals, tool selection, workflow automation, and multi-agent systems with clear examples and checklists.",
+    }),
+    url: canonicalUrl("/guides"),
+    type: "website",
+    images: [{ url: "https://boomkas.com/og.png", alt: "Boomkas" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Agentic AI Guides",
+    description: generateMetaDescription({
+      title: "Agentic AI Guides",
+      description:
+        "New to AI agents? Start with these practical guides covering fundamentals, tool selection, workflow automation, and multi-agent systems with clear examples and checklists.",
+    }),
+    images: ["https://boomkas.com/og.png"],
   },
 };
 
@@ -34,6 +61,12 @@ export default function GuidesIndexPage() {
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: canonicalUrl("/") },
+          { name: "Guides", url: canonicalUrl("/guides") },
+        ]}
+      />
       <div className="mb-10">
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
           Agentic AI Guides

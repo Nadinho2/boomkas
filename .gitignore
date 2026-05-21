@@ -20,6 +20,11 @@
 # production
 /build
 
+# sanity studio
+/dist/
+/.sanity-config/
+/.sanity/
+
 # misc
 .DS_Store
 *.pem

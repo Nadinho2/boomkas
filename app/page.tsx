@@ -83,6 +83,66 @@ export default function Home() {
         <ComparisonTable variant="compact" limit={10} />
       </section>
 
+      <section className="mx-auto w-full max-w-6xl px-4 pb-14 sm:px-6 sm:pb-20">
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Card className="border-border/60 bg-card/40">
+            <CardContent className="p-6 sm:p-8">
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <Badge variant="cyan">Why trust Boomkas</Badge>
+                <Badge variant="default">First-hand</Badge>
+                <Badge variant="default">Updated</Badge>
+              </div>
+              <h2 className="text-xl font-semibold tracking-tight">Builder-first reviews you can use</h2>
+              <p className="mt-3 text-sm leading-7 text-muted-foreground sm:text-base">
+                We review agentic AI tools by running practical workflows. We publish clear trade-offs, keep affiliate
+                labels visible, and update pages when pricing and features change.
+              </p>
+              <ul className="mt-4 list-disc space-y-2 pl-5 text-sm text-muted-foreground sm:text-base">
+                <li>Testing process and “what we found” sections on tool reviews</li>
+                <li>Transparent disclosures on affiliate links</li>
+                <li>Structured data, breadcrumbs, and internal link hubs for topical authority</li>
+              </ul>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Button asChild variant="secondary">
+                  <Link href="/review-methodology">Review methodology</Link>
+                </Button>
+                <Button asChild variant="secondary">
+                  <Link href="/editorial-guidelines">Editorial guidelines</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/60 bg-card/40">
+            <CardContent className="p-6 sm:p-8">
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <Badge variant="cyan">Press & mentions</Badge>
+                <Badge variant="default">Coming soon</Badge>
+              </div>
+              <h2 className="text-xl font-semibold tracking-tight">Mentions, citations, and linkable assets</h2>
+              <p className="mt-3 text-sm leading-7 text-muted-foreground sm:text-base">
+                We’re building assets that are easy to cite and share: comparison tables, rankings, and category hubs.
+                If you mention Boomkas, we’ll keep the referenced pages updated.
+              </p>
+              <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                <Button asChild variant="secondary" className="w-full">
+                  <Link href="/tools">Comparison table</Link>
+                </Button>
+                <Button asChild variant="secondary" className="w-full">
+                  <Link href="/categories">Category hubs</Link>
+                </Button>
+                <Button asChild variant="secondary" className="w-full">
+                  <Link href="/use-cases">By use case</Link>
+                </Button>
+                <Button asChild variant="secondary" className="w-full">
+                  <Link href="/glossary">AI glossary</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
       <section
         id="simulator"
         className="mx-auto w-full max-w-6xl px-4 pb-20 sm:px-6 sm:pb-28"

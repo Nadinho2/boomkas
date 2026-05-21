@@ -2,7 +2,7 @@
   "crons": [
     { "path": "/api/cron/generate-post", "schedule": "0 8 * * *" },
     { "path": "/api/cron/generate-post", "schedule": "0 14 * * *" },
-    { "path": "/api/cron/generate-post", "schedule": "0 19 * * *" }
+    { "path": "/api/cron/generate-post", "schedule": "0 19 * * *" },
+    { "path": "/api/cron/refresh-posts", "schedule": "0 9 1 * *" }
   ]
 }
-

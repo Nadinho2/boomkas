@@ -1,25 +1,37 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
+import { BreadcrumbSchema } from "@/components/schema/BreadcrumbSchema";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { canonicalAlternates, canonicalUrl, generateMetaDescription } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "About Boomkas — Independent Agentic AI Research",
-  description:
-    "Boomkas is an independent platform comparing the best agentic AI tools in 2026. Learn how we research, rate, and recommend tools.",
-  alternates: { canonical: "https://boomkas.com/about" },
-  openGraph: {
+  description: generateMetaDescription({
     title: "About Boomkas — Independent Agentic AI Research",
     description:
-      "Boomkas is an independent platform comparing the best agentic AI tools in 2026. Learn how we research, rate, and recommend tools.",
-    url: "https://boomkas.com/about",
+      "Boomkas is an independent platform comparing the best agentic AI tools in 2026. Learn how we research, rate, and recommend tools with transparent criteria.",
+  }),
+  alternates: canonicalAlternates("/about"),
+  openGraph: {
+    title: "About Boomkas — Independent Agentic AI Research",
+    description: generateMetaDescription({
+      title: "About Boomkas — Independent Agentic AI Research",
+      description:
+        "Boomkas is an independent platform comparing the best agentic AI tools in 2026. Learn how we research, rate, and recommend tools with transparent criteria.",
+    }),
+    url: canonicalUrl("/about"),
     type: "website",
     images: [{ url: "https://boomkas.com/og.png", alt: "Boomkas" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "About Boomkas — Independent Agentic AI Research",
-    description:
-      "Boomkas is an independent platform comparing the best agentic AI tools in 2026. Learn how we research, rate, and recommend tools.",
+    description: generateMetaDescription({
+      title: "About Boomkas — Independent Agentic AI Research",
+      description:
+        "Boomkas is an independent platform comparing the best agentic AI tools in 2026. Learn how we research, rate, and recommend tools with transparent criteria.",
+    }),
     images: ["https://boomkas.com/og.png"],
   },
 };
@@ -41,6 +53,12 @@ const CRITERIA = [
 export default function AboutPage() {
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: canonicalUrl("/") },
+          { name: "About", url: canonicalUrl("/about") },
+        ]}
+      />
       <section className="relative overflow-hidden rounded-[var(--radius)] bg-card/60 p-8 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.10)] sm:p-10">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(0,240,255,0.16),transparent_58%),radial-gradient(circle_at_80%_70%,rgba(255,107,0,0.12),transparent_58%)]" />
         <div className="relative">
@@ -104,6 +122,50 @@ export default function AboutPage() {
             </Card>
           ))}
         </div>
+      </section>
+
+      <section className="mt-12 grid gap-6 lg:grid-cols-2">
+        <Card className="border-border/60 bg-card/40">
+          <CardHeader>
+            <CardTitle className="text-xl">Why Trust Boomkas</CardTitle>
+            <CardDescription>Experience, transparency, and updates.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4 text-sm leading-7 text-muted-foreground sm:text-base">
+            <p>
+              Helpful content is practical, specific, and updated. We add first-hand testing sections to reviews, keep
+              affiliate labels visible, and publish author profiles so you can see who wrote and tested the content.
+            </p>
+            <ul className="list-disc space-y-2 pl-5">
+              <li>Testing checklists and “what we found” observations</li>
+              <li>Clear disclosures for affiliate links</li>
+              <li>Update cadence for pricing and feature changes</li>
+            </ul>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/60 bg-card/40">
+          <CardHeader>
+            <CardTitle className="text-xl">Resources</CardTitle>
+            <CardDescription>How we publish and how to navigate the site.</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-3">
+            <Link href="/review-methodology" className="text-sm font-medium text-[color:var(--primary)] hover:underline">
+              Review methodology
+            </Link>
+            <Link href="/editorial-guidelines" className="text-sm font-medium text-[color:var(--primary)] hover:underline">
+              Editorial guidelines
+            </Link>
+            <Link href="/authors" className="text-sm font-medium text-[color:var(--primary)] hover:underline">
+              Authors
+            </Link>
+            <Link href="/categories" className="text-sm font-medium text-[color:var(--primary)] hover:underline">
+              Categories
+            </Link>
+            <Link href="/glossary" className="text-sm font-medium text-[color:var(--primary)] hover:underline">
+              AI glossary
+            </Link>
+          </CardContent>
+        </Card>
       </section>
 
       <section className="mt-12">

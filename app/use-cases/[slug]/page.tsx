@@ -1,16 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AffiliateLink } from "@/components/Links";
+import { BreadcrumbSchema } from "@/components/schema/BreadcrumbSchema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { canonicalAlternates, canonicalUrl, generateMetaDescription } from "@/lib/seo";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const useCase = slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   return {
     title: `Best AI Agents for ${useCase} in 2026`,
-    description: `Discover the top AI tools for ${useCase.toLowerCase()}. Read reviews and compare features.`,
+    description: generateMetaDescription({
+      title: `Best AI Agents for ${useCase} in 2026`,
+      description: `Discover the top AI tools for ${useCase.toLowerCase()}. Read reviews, compare features, pricing, autonomy, and workflows to pick the best fit.`,
+    }),
     alternates: {
-      canonical: `/use-cases/${slug}`,
+      ...canonicalAlternates(`/use-cases/${slug}`),
       languages: {
         "en-US": `https://boomkas.com/use-cases/${slug}`,
         "en-GB": `https://boomkas.com/use-cases/${slug}`,
@@ -37,6 +43,13 @@ export default async function UseCaseSlugPage({ params }: { params: Promise<{ sl
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-14 sm:px-6 sm:py-20">
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: canonicalUrl("/") },
+          { name: "Use Cases", url: canonicalUrl("/use-cases") },
+          { name: useCase, url: canonicalUrl(`/use-cases/${slug}`) },
+        ]}
+      />
       <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl mb-6">
         Best AI Agents for {useCase} in 2026
       </h1>
@@ -61,13 +74,9 @@ export default async function UseCaseSlugPage({ params }: { params: Promise<{ sl
               </div>
               <div className="flex flex-col gap-2 min-w-[150px]">
                 <Button asChild variant="primary" className="w-full">
-                  <a
-                    href={`/go/${tool.slug}`}
-                    target="_blank"
-                    rel="nofollow noopener noreferrer"
-                  >
+                  <AffiliateLink href={`/go/${tool.slug}`}>
                     Get {tool.name}
-                  </a>
+                  </AffiliateLink>
                 </Button>
                 <Button asChild variant="ghost" className="w-full">
                   <Link href={`/tools/${tool.slug}`}>View full review →</Link>

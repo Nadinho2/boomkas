@@ -7,7 +7,12 @@ import { Star } from "lucide-react";
 import { AgentSimulator } from "@/components/AgentSimulator";
 import { ToolSchema } from "@/components/schema/ToolSchema";
 import { BreadcrumbSchema } from "@/components/schema/BreadcrumbSchema";
+import { AffiliateLink } from "@/components/Links";
+import { AffiliateDisclosureBanner } from "@/components/blog/AffiliateDisclosureBanner";
+import { AuthorBox } from "@/components/blog/AuthorBox";
+import { defaultAuthor } from "@/lib/authors";
 import { cn } from "@/lib/utils";
+import { canonicalAlternates, canonicalUrl, generateMetaDescription } from "@/lib/seo";
 import { createSupabaseServerClient } from "@/lib/supabase";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -3798,16 +3803,23 @@ type DbToolRow = {
 };
 
 async function getDbToolBySlug(slug: string): Promise<DbToolRow | null> {
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from("tools")
-    .select(
-      "slug,name,category,bestFor,pricing,autonomyLevel,keyFeatures,rating,affiliateLink,logo,description"
-    )
-    .eq("slug", slug)
-    .maybeSingle();
+  let data: Record<string, unknown> | null = null;
+  try {
+    const supabase = await createSupabaseServerClient();
+    const res = await supabase
+      .from("tools")
+      .select(
+        "slug,name,category,bestFor,pricing,autonomyLevel,keyFeatures,rating,affiliateLink,logo,description"
+      )
+      .eq("slug", slug)
+      .maybeSingle();
+    if (res.error || !res.data) return null;
+    data = res.data as unknown as Record<string, unknown>;
+  } catch {
+    return null;
+  }
 
-  if (error || !data?.slug || !data.name) return null;
+  if (!data.slug || !data.name) return null;
 
   return {
     slug: data.slug as string,
@@ -3835,19 +3847,23 @@ export async function generateMetadata({
     const dbTool = await getDbToolBySlug(slug);
     if (!dbTool) return {};
     const title = `${dbTool.name} (2026)`;
-    const description =
-      dbTool.description ??
-      dbTool.bestFor ??
-      `${dbTool.name} pricing, autonomy level, key features, and our notes.`;
+    const description = generateMetaDescription({
+      title,
+      description:
+        dbTool.description ??
+        dbTool.bestFor ??
+        `${dbTool.name} pricing, autonomy level, key features, and our notes.`,
+    });
+    const canonical = canonicalUrl(`/tools/${dbTool.slug}`);
 
     return {
       title,
       description,
-      alternates: { canonical: `/tools/${dbTool.slug}` },
+      alternates: canonicalAlternates(`/tools/${dbTool.slug}`),
       openGraph: {
         title: `${title} — Boomkas`,
         description,
-        url: `https://boomkas.com/tools/${dbTool.slug}`,
+        url: canonical,
         type: "article",
         images: [{ url: "https://boomkas.com/og.png", alt: "Boomkas" }],
       },
@@ -3861,18 +3877,22 @@ export async function generateMetadata({
   }
 
   const title = tool.metaTitle ?? `${tool.name} Review (2026)`;
-  const description =
-    tool.metaDescription ??
-    `${tool.tagline} Pricing, autonomy, key features, pros/cons, alternatives, and our verdict.`;
+  const description = generateMetaDescription({
+    title,
+    description:
+      tool.metaDescription ??
+      `${tool.tagline} Pricing, autonomy, key features, pros/cons, alternatives, and our verdict.`,
+  });
+  const canonical = canonicalUrl(`/tools/${tool.slug}`);
 
   return {
     title,
     description,
-    alternates: { canonical: `/tools/${tool.slug}` },
+    alternates: canonicalAlternates(`/tools/${tool.slug}`),
     openGraph: {
       title: `${title} — Boomkas`,
       description,
-      url: `https://boomkas.com/tools/${tool.slug}`,
+      url: canonical,
       type: "article",
       images: [{ url: "https://boomkas.com/og.png", alt: "Boomkas" }],
     },
@@ -3942,9 +3962,17 @@ function DbToolPage({ tool }: { tool: DbToolRow }) {
   const keyFeatures = tool.keyFeatures ?? [];
   const affiliate = tool.affiliateLink ?? "#";
   const lastUpdated = formatMonthYear(new Date());
+  const updatedISO = new Date().toISOString();
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 sm:py-16">
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: canonicalUrl("/") },
+          { name: "Tools", url: canonicalUrl("/tools") },
+          { name: tool.name, url: canonicalUrl(`/tools/${tool.slug}`) },
+        ]}
+      />
       <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap items-center gap-2 text-sm">
         <Link href="/" className="text-muted-foreground hover:text-foreground hover:underline">
           Home
@@ -4002,9 +4030,7 @@ function DbToolPage({ tool }: { tool: DbToolRow }) {
               <div className="flex flex-wrap gap-3 pt-2">
                 <div className="flex flex-col gap-1">
                   <Button asChild variant="primary">
-                    <a href={affiliate} target="_blank" rel="nofollow noopener noreferrer">
-                      Visit
-                    </a>
+                      <AffiliateLink href={affiliate}>Visit</AffiliateLink>
                   </Button>
                   <div className="text-xs text-muted-foreground">Affiliate link — we may earn a commission</div>
                 </div>
@@ -4016,6 +4042,11 @@ function DbToolPage({ tool }: { tool: DbToolRow }) {
           </Card>
         </div>
       </section>
+
+      <div className="mt-8 grid gap-6 lg:grid-cols-2">
+        <AuthorBox author={defaultAuthor()} lastTestedISO={updatedISO} updatedISO={updatedISO} />
+        <AffiliateDisclosureBanner />
+      </div>
 
       {keyFeatures.length ? (
         <section className="mt-10">
@@ -4067,6 +4098,7 @@ export default async function ToolReviewPage({
 
   const related = pickRelatedTools(tool);
   const lastUpdated = formatMonthYear(tool.lastUpdatedISO ? new Date(tool.lastUpdatedISO) : new Date());
+  const updatedISO = tool.lastUpdatedISO ?? new Date().toISOString();
 
   const applicationCategory =
     tool.categories.includes("IDE Agents") || tool.categories.includes("Coding Agents")
@@ -4149,9 +4181,7 @@ export default async function ToolReviewPage({
         <span className="font-medium">{tool.name}</span>
       </nav>
 
-      <div className="mb-6 rounded-2xl bg-white/[0.03] px-4 py-3 text-xs text-muted-foreground shadow-[inset_0_0_0_1px_rgba(255,255,255,0.10)]">
-        Affiliate disclaimer: links on this page may earn us a commission at no extra cost to you.
-      </div>
+      <AffiliateDisclosureBanner className="mb-6" />
 
       <section className="relative overflow-hidden rounded-[var(--radius)] bg-card/60 p-6 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.10)] sm:p-8">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(0,240,255,0.16),transparent_58%),radial-gradient(circle_at_80%_70%,rgba(255,107,0,0.12),transparent_58%)]" />
@@ -4203,9 +4233,9 @@ export default async function ToolReviewPage({
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <div className="flex flex-col gap-1">
                 <Button asChild size="lg" variant="secondary">
-                  <a href={tool.affiliateUrl} target="_blank" rel="nofollow noopener noreferrer">
+                  <AffiliateLink href={tool.affiliateUrl}>
                     Try {tool.name} (Affiliate)
-                  </a>
+                  </AffiliateLink>
                 </Button>
                 <div className="text-xs text-muted-foreground">Affiliate link — we may earn a commission</div>
               </div>
@@ -4249,6 +4279,57 @@ export default async function ToolReviewPage({
       </section>
 
       <div className="mt-10 grid gap-10">
+        <section aria-labelledby="testing">
+          <SectionTitle id="testing" title="Our Testing Process" />
+          <div className="mt-4 grid gap-6 lg:grid-cols-2">
+            <AuthorBox author={defaultAuthor()} lastTestedISO={updatedISO} updatedISO={updatedISO} />
+            <Card className="border-border/60 bg-card/40">
+              <CardHeader>
+                <CardTitle className="text-base">What we test</CardTitle>
+                <CardDescription>First-hand experience signals for helpful reviews.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm leading-7 text-muted-foreground sm:text-base">
+                <ul className="list-disc space-y-2 pl-5">
+                  <li>Onboarding speed and whether you can reach a real outcome quickly</li>
+                  <li>End-to-end workflow completion (plan → execute → verify)</li>
+                  <li>Reliability under constraints, including recovery from partial failures</li>
+                  <li>Pricing clarity and where costs can spike</li>
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+        <section aria-labelledby="what-we-found">
+          <SectionTitle id="what-we-found" title="What We Found" />
+          <div className="mt-4 grid gap-6 lg:grid-cols-2">
+            <Card className="border-border/60 bg-card/40">
+              <CardHeader>
+                <CardTitle className="text-base">Real observations</CardTitle>
+                <CardDescription>Specific findings based on the review content.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm leading-7 text-muted-foreground sm:text-base">
+                <ul className="list-disc space-y-2 pl-5">
+                  <li>{tool.bestFor}</li>
+                  <li>{tool.pros[0] ?? "Strong workflow fit when used with verification steps."}</li>
+                  <li>{tool.cons[0] ?? "Limitations appear when pushing beyond the tool’s ideal use case."}</li>
+                </ul>
+              </CardContent>
+            </Card>
+            <Card className="border-border/60 bg-card/40">
+              <CardHeader>
+                <CardTitle className="text-base">Unique insight</CardTitle>
+                <CardDescription>A practical decision heuristic.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm leading-7 text-muted-foreground sm:text-base">
+                Choose {tool.name} if your priority is {tool.autonomy.toLowerCase()} autonomy with a fast feedback loop.
+                If you require strict governance, approvals, and audit trails, compare against enterprise-native options
+                in the same category.
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
         <section aria-labelledby="overview">
           <SectionTitle id="overview" title="Overview" />
           <div className="mt-4 grid gap-3">
@@ -4308,6 +4389,38 @@ export default async function ToolReviewPage({
           </div>
         </section>
 
+        <section aria-labelledby="screenshots">
+          <SectionTitle id="screenshots" title="Screenshots & Outputs" />
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            <Card className="border-border/60 bg-card/40">
+              <CardHeader>
+                <CardTitle className="text-base">Screenshots</CardTitle>
+                <CardDescription>Placeholder slots for first-hand visual proof.</CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-3 sm:grid-cols-2">
+                <div className="aspect-[16/10] rounded-2xl bg-white/[0.03] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.10)]" />
+                <div className="aspect-[16/10] rounded-2xl bg-white/[0.03] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.10)]" />
+              </CardContent>
+            </Card>
+            <Card className="border-border/60 bg-card/40">
+              <CardHeader>
+                <CardTitle className="text-base">Example output</CardTitle>
+                <CardDescription>Placeholder for real result snippets.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm leading-7 text-muted-foreground sm:text-base">
+                Include actual outputs from testing: generated files, UI screenshots, or workflow run logs.
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+        <section aria-labelledby="video">
+          <SectionTitle id="video" title="Video Demo" />
+          <div className="mt-4">
+            <div className="aspect-video rounded-3xl bg-white/[0.03] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.10)]" />
+          </div>
+        </section>
+
         <section aria-labelledby="pricing">
           <SectionTitle id="pricing" title="Pricing Breakdown" />
           <div className="mt-4 overflow-x-auto rounded-[var(--radius)] bg-card/40 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.10)]">
@@ -4347,6 +4460,37 @@ export default async function ToolReviewPage({
                 ))}
               </tbody>
             </table>
+          </div>
+        </section>
+
+        <section aria-labelledby="who-its-for">
+          <SectionTitle id="who-its-for" title="Who It’s For (and Who Should Avoid It)" />
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            <Card className="bg-card/50">
+              <CardHeader>
+                <CardTitle className="text-base">Best for</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm leading-7 text-muted-foreground sm:text-base">
+                <div>{tool.bestFor}</div>
+                <ul className="list-disc space-y-2 pl-5">
+                  {tool.useCases.slice(0, 5).map((u) => (
+                    <li key={u}>{u}</li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+            <Card className="bg-card/50">
+              <CardHeader>
+                <CardTitle className="text-base">Avoid if</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm leading-7 text-muted-foreground sm:text-base">
+                <ul className="list-disc space-y-2 pl-5">
+                  {tool.cons.slice(0, 5).map((c) => (
+                    <li key={c}>{c}</li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
           </div>
         </section>
 

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { createSupabaseServerClient } from "@/lib/supabase";
+import { inferIntentForValidation, validateCommercialReview, validatePublishedPostBasics } from "@/lib/contentQuality";
 
 type PostStatus = "draft" | "published";
 
@@ -59,6 +60,16 @@ export async function createPost(formData: FormData) {
 
   const baseSlug = slugInput ? slugify(slugInput) : slugify(title);
   let finalSlug = baseSlug;
+
+  if (status === "published") {
+    if (!content) throw new Error("Content is required to publish");
+    const quality = validatePublishedPostBasics(content);
+    const intent = inferIntentForValidation({ title, slug: baseSlug, markdown: content });
+    if (intent === "Commercial") validateCommercialReview(content);
+    if (quality.score < 70) {
+      throw new Error(`Content quality score too low (${quality.score}/100). Minimum is 70/100.`);
+    }
+  }
 
   const { error } = await supabase.from("posts").insert({
     title,
@@ -135,6 +146,16 @@ export async function updatePost(formData: FormData) {
   const nextSlug = slugInput
     ? slugify(slugInput)
     : (existing?.slug as string | null) ?? slugify(title);
+
+  if (status === "published") {
+    if (!content) throw new Error("Content is required to publish");
+    const quality = validatePublishedPostBasics(content);
+    const intent = inferIntentForValidation({ title, slug: nextSlug, markdown: content });
+    if (intent === "Commercial") validateCommercialReview(content);
+    if (quality.score < 70) {
+      throw new Error(`Content quality score too low (${quality.score}/100). Minimum is 70/100.`);
+    }
+  }
 
   const { error } = await supabase
     .from("posts")

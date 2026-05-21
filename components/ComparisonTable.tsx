@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { AffiliateLink } from "@/components/Links";
 
 type ColumnMeta = {
   headerClassName?: string;
@@ -990,14 +991,12 @@ export function ComparisonTable({
           cell: ({ row }) => (
             <div className="flex items-center gap-2">
               <Button asChild variant="secondary" size="sm">
-                <a
+                <AffiliateLink
                   href={row.original.affiliateUrl}
-                  target="_blank"
-                  rel="nofollow noopener noreferrer"
                   aria-label={`${row.original.actionLabel ?? "Try Now"}: ${row.original.name}`}
                 >
                   {row.original.actionLabel ?? "Try Now"}
-                </a>
+                </AffiliateLink>
               </Button>
               {row.original.website ? (
                 <a
@@ -1213,9 +1212,9 @@ export function ComparisonTable({
 
                     <div className="mt-4 flex items-center justify-between gap-3">
                       <Button asChild variant="secondary" size="sm">
-                        <a href={tool.affiliateUrl} rel="nofollow">
+                        <AffiliateLink href={tool.affiliateUrl}>
                           {tool.actionLabel ?? "Try Now"}
-                        </a>
+                        </AffiliateLink>
                       </Button>
                       {tool.website ? (
                         <a

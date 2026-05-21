@@ -3,16 +3,25 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import Script from "next/script";
 import { WebSiteSchema } from "@/components/schema/WebSiteSchema";
+import { OrganizationSchema } from "@/components/schema/OrganizationSchema";
+import { canonicalAlternates, canonicalUrl, generateMetaDescription } from "@/lib/seo";
 import "./globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap",
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
+});
+
+const ROOT_DESCRIPTION = generateMetaDescription({
+  description:
+    "Discover, compare, and master the best agentic AI tools that plan, reason, and execute workflows autonomously with real 2026 pricing, pros/cons, and reviews.",
 });
 
 export const metadata: Metadata = {
@@ -21,8 +30,7 @@ export const metadata: Metadata = {
     default: "Boomkas — Agentic AI Tools Compared (2026)",
     template: "%s — Boomkas",
   },
-  description:
-    "Discover, compare, and master the best agentic AI tools that plan, reason, and execute workflows autonomously.",
+  description: ROOT_DESCRIPTION,
   applicationName: "Boomkas",
   keywords: [
     "agentic ai",
@@ -33,13 +41,12 @@ export const metadata: Metadata = {
     "tool comparison",
     "reviews",
   ],
-  alternates: { canonical: "/" },
+  alternates: canonicalAlternates("/"),
   openGraph: {
     type: "website",
-    url: "https://boomkas.com",
+    url: canonicalUrl("/"),
     title: "Boomkas — Agentic AI Tools Compared (2026)",
-    description:
-      "Discover, compare, and master the best agentic AI tools that plan, reason, and execute workflows autonomously.",
+    description: ROOT_DESCRIPTION,
     siteName: "Boomkas",
     images: [
       {
@@ -53,8 +60,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Boomkas — Agentic AI Tools Compared (2026)",
-    description:
-      "Discover, compare, and master the best agentic AI tools that plan, reason, and execute workflows autonomously.",
+    description: ROOT_DESCRIPTION,
     images: ["/og.png"],
   },
   robots: {
@@ -94,6 +100,7 @@ export default function RootLayout({
         <meta name="geo.placename" content="United States" />
         <meta name="language" content="English" />
         <WebSiteSchema />
+        <OrganizationSchema />
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">
         {gaId ? (
@@ -134,13 +141,26 @@ export default function RootLayout({
             <nav aria-label="Primary" className="hidden items-center gap-1 sm:flex">
               <NavLink href="/">Home</NavLink>
               <NavLink href="/tools">Tools</NavLink>
+              <NavLink href="/rankings">Rankings</NavLink>
               <NavLink href="/compare">Compare</NavLink>
               <NavLink href="/guides">Guides</NavLink>
               <NavLink href="/blog">Blog</NavLink>
+              <NavLink href="/authors">Authors</NavLink>
               <NavLink href="/about">About</NavLink>
             </nav>
 
             <div className="flex items-center gap-2">
+              <form action="/blog" method="get" className="hidden sm:block">
+                <label className="sr-only" htmlFor="header-search">
+                  Search
+                </label>
+                <input
+                  id="header-search"
+                  name="q"
+                  placeholder="Search..."
+                  className="h-10 w-[220px] rounded-full bg-white/5 px-4 text-sm text-foreground shadow-[inset_0_0_0_1px_rgba(255,255,255,0.14)] outline-none transition placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                />
+              </form>
               <details className="relative sm:hidden">
                 <summary className="inline-flex h-10 cursor-pointer list-none items-center justify-center rounded-full bg-white/5 px-4 text-sm font-medium shadow-[inset_0_0_0_1px_rgba(255,255,255,0.14)] transition hover:bg-white/[0.07] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                   Menu
@@ -148,9 +168,11 @@ export default function RootLayout({
                 <div className="absolute right-0 top-12 z-50 w-48 rounded-2xl border border-border/70 bg-card/95 p-2 shadow-[0_0_0_1px_rgba(255,255,255,0.06),0_25px_70px_rgba(0,0,0,0.55)] backdrop-blur">
                   <MobileNavLink href="/">Home</MobileNavLink>
                   <MobileNavLink href="/tools">Tools</MobileNavLink>
+                  <MobileNavLink href="/rankings">Rankings</MobileNavLink>
                   <MobileNavLink href="/compare">Compare</MobileNavLink>
                   <MobileNavLink href="/guides">Guides</MobileNavLink>
                   <MobileNavLink href="/blog">Blog</MobileNavLink>
+                  <MobileNavLink href="/authors">Authors</MobileNavLink>
                   <MobileNavLink href="/about">About</MobileNavLink>
                 </div>
               </details>
@@ -177,6 +199,53 @@ export default function RootLayout({
               <div className="text-xs text-muted-foreground">
                 Affiliate disclaimer: links may earn us a commission at no extra cost to you.
               </div>
+            </div>
+            <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+              <Link href="/tools" className="text-muted-foreground hover:text-foreground hover:underline">
+                Tools
+              </Link>
+              <Link href="/rankings" className="text-muted-foreground hover:text-foreground hover:underline">
+                Rankings
+              </Link>
+              <Link href="/blog" className="text-muted-foreground hover:text-foreground hover:underline">
+                Blog
+              </Link>
+              <Link href="/guides" className="text-muted-foreground hover:text-foreground hover:underline">
+                Guides
+              </Link>
+              <Link href="/compare" className="text-muted-foreground hover:text-foreground hover:underline">
+                Compare
+              </Link>
+              <Link href="/use-cases" className="text-muted-foreground hover:text-foreground hover:underline">
+                Use Cases
+              </Link>
+              <Link href="/alternatives" className="text-muted-foreground hover:text-foreground hover:underline">
+                Alternatives
+              </Link>
+              <Link href="/about" className="text-muted-foreground hover:text-foreground hover:underline">
+                About
+              </Link>
+              <Link href="/editorial-guidelines" className="text-muted-foreground hover:text-foreground hover:underline">
+                Editorial Guidelines
+              </Link>
+              <Link href="/review-methodology" className="text-muted-foreground hover:text-foreground hover:underline">
+                Review Methodology
+              </Link>
+              <Link href="/privacy" className="text-muted-foreground hover:text-foreground hover:underline">
+                Privacy
+              </Link>
+              <Link href="/terms" className="text-muted-foreground hover:text-foreground hover:underline">
+                Terms
+              </Link>
+              <Link href="/contact" className="text-muted-foreground hover:text-foreground hover:underline">
+                Contact
+              </Link>
+            </div>
+            <div className="mt-4 inline-flex items-center gap-2 text-xs text-muted-foreground">
+              <span className="inline-flex h-6 items-center rounded-full bg-white/5 px-2.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.14)]">
+                Secure HTTPS
+              </span>
+              <span>Trust badge</span>
             </div>
           </div>
         </footer>

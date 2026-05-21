@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && node scripts/seo-audit.ts",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "sanity:dev": "pwsh -NoProfile -Command \"$env:XDG_CONFIG_HOME=\\\"$PWD\\\\.sanity-config\\\"; sanity dev --host 0.0.0.0 --port 3333\"",
+    "sanity:deploy": "pwsh -NoProfile -Command \"$env:XDG_CONFIG_HOME=\\\"$PWD\\\\.sanity-config\\\"; sanity deploy\""
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
@@ -14,6 +16,8 @@
     "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-separator": "^1.1.8",
     "@radix-ui/react-slot": "^1.2.4",
+    "@sanity/client": "^7.11.1",
+    "@sanity/vision": "^4.5.1",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.104.1",
     "@tanstack/react-table": "^8.21.3",
@@ -24,6 +28,8 @@
     "next": "16.2.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "sanity": "^4.5.1",
+    "styled-components": "^6.4.2",
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {

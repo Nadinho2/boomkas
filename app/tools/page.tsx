@@ -7,15 +7,20 @@ import {
   type ToolCategory,
   type ToolRow,
 } from "@/components/ComparisonTable";
+import { BreadcrumbSchema } from "@/components/schema/BreadcrumbSchema";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { createSupabaseServerClient } from "@/lib/supabase";
+import { canonicalAlternates, canonicalUrl, generateMetaDescription } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Tools",
-  description:
-    "Sortable, filterable comparison table of the best agentic AI tools in 2026 — pricing, autonomy, integrations, and ratings.",
-  alternates: { canonical: "/tools" },
+  description: generateMetaDescription({
+    title: "Tools",
+    description:
+      "Sortable, filterable comparison table of the best agentic AI tools in 2026 with real pricing, autonomy levels, key features, and ratings to help you choose faster.",
+  }),
+  alternates: canonicalAlternates("/tools"),
 };
 
 const ALL_CATEGORIES: ToolCategory[] = [
@@ -66,11 +71,17 @@ export default async function ToolsPage({
 }: {
   searchParams?: Record<string, string | string[] | undefined>;
 }) {
-  const supabase = await createSupabaseServerClient();
-  const { data: dbTools } = await supabase
-    .from("tools")
-    .select("slug,name,bestFor,pricing,autonomyLevel,category,keyFeatures,rating,affiliateLink")
-    .order("updated_at", { ascending: false });
+  let dbTools: Array<Record<string, unknown>> = [];
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data } = await supabase
+      .from("tools")
+      .select("slug,name,bestFor,pricing,autonomyLevel,category,keyFeatures,rating,affiliateLink")
+      .order("updated_at", { ascending: false });
+    dbTools = (data as Array<Record<string, unknown>> | null) ?? [];
+  } catch {
+    dbTools = [];
+  }
 
   const extraRows: ToolRow[] = (dbTools ?? [])
     .filter((t) => typeof t?.slug === "string" && t.slug.length > 0)
@@ -104,6 +115,12 @@ export default async function ToolsPage({
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: canonicalUrl("/") },
+          { name: "Tools", url: canonicalUrl("/tools") },
+        ]}
+      />
       <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="mb-3 flex flex-wrap items-center gap-2">

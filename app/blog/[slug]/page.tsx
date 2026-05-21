@@ -5,12 +5,24 @@ import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { createSupabaseServerClient } from "@/lib/supabase";
+import { canonicalAlternates, canonicalUrl, generateMetaDescription } from "@/lib/seo";
+import { defaultAuthor } from "@/lib/authors";
+import { plainStringToPortableText } from "@/lib/portableText";
+import { sanityFetchPostBySlug, sanityFetchPublishedPosts, type SanityBlock } from "@/lib/sanity";
 import { ArticleSchema } from "@/components/schema/ArticleSchema";
 import { BreadcrumbSchema } from "@/components/schema/BreadcrumbSchema";
+import { AffiliateDisclosureBanner } from "@/components/blog/AffiliateDisclosureBanner";
+import { AuthorBox } from "@/components/blog/AuthorBox";
+import { FaqAccordion, type FaqItem } from "@/components/blog/FaqAccordion";
+import { PortableTextRenderer } from "@/components/blog/PortableTextRenderer";
+import { PostEnhancements } from "@/components/blog/PostEnhancements";
+import { StarRating } from "@/components/blog/StarRating";
+import { TldrBox } from "@/components/blog/TldrBox";
+import { TocLinks } from "@/components/blog/TocLinks";
+import { NewsletterForm } from "@/components/NewsletterForm";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import {
   Table,
@@ -43,8 +55,12 @@ type BlogPost = {
   description: string;
   excerpt: string;
   dateISO: string;
+  updatedISO: string;
+  lastTestedISO: string;
   readingMinutes: number;
   category: BlogCategory;
+  intent: "Informational" | "Commercial" | "Navigational";
+  hasAffiliate: boolean;
   author: string;
   heroImageAlt: string;
   heroImageDataUri: string;
@@ -97,8 +113,12 @@ const POSTS: BlogPost[] = [
     excerpt:
       "Discover the best agentic AI tools 2026 across coding, workflow automation, and multi-agent systems—plus honest recommendations and a buyer’s checklist.",
     dateISO: "2026-04-20",
+    updatedISO: "2026-04-20",
+    lastTestedISO: "2026-04-20",
     readingMinutes: 20,
     category: "Tool Comparisons",
+    intent: "Commercial",
+    hasAffiliate: false,
     author: AUTHOR,
     heroImageAlt: "Futuristic gradient hero image placeholder",
     heroImageDataUri: HERO_PLACEHOLDER,
@@ -987,6 +1007,14 @@ function safeCategory(input: string | null | undefined): BlogCategory {
   return "Tool Comparisons";
 }
 
+function inferIntent(slug: string, title: string) {
+  const s = `${slug} ${title}`.toLowerCase();
+  if (s.includes("vs") || s.includes("-vs-") || s.includes("review") || s.includes("best")) return "Commercial" as const;
+  if (s.includes("how-to") || s.includes("what-is") || s.includes("guide")) return "Informational" as const;
+  if (s.includes("boomkas")) return "Navigational" as const;
+  return "Informational" as const;
+}
+
 function readingMinutesFromText(text: string) {
   const words = text.trim().split(/\s+/).filter(Boolean).length;
   return Math.max(1, Math.ceil(words / 220));
@@ -1090,6 +1118,53 @@ function parseTableRow(line: string) {
   const noOuter =
     trimmed.startsWith("|") && trimmed.endsWith("|") ? trimmed.slice(1, -1) : trimmed;
   return noOuter.split("|").map((c) => c.trim());
+}
+
+function tocFromMarkdown(text: string) {
+  const lines = text.split("\n").map((l) => l.trim());
+  const items: TocItem[] = [];
+
+  for (const line of lines) {
+    const h2 = line.startsWith("## ") ? line.slice(3).trim() : "";
+    const h3 = line.startsWith("### ") ? line.slice(4).trim() : "";
+    const label = h2 || h3;
+    if (!label) continue;
+    const level = h3 ? (3 as const) : (2 as const);
+    items.push({ id: slugifyId(label), label, level });
+  }
+
+  return items.length ? items.slice(0, 30) : undefined;
+}
+
+function tocFromPortableText(blocks: SanityBlock[] | undefined) {
+  const items: TocItem[] = [];
+  for (const b of blocks ?? []) {
+    if (!b || b._type !== "block") continue;
+    const isH2 = b.style === "h2";
+    const isH3 = b.style === "h3";
+    if (!isH2 && !isH3) continue;
+    const label = (b.children ?? []).map((c) => c.text).join("").trim();
+    if (!label) continue;
+    items.push({ id: slugifyId(label), label, level: isH3 ? 3 : 2 });
+  }
+  return items.length ? items.slice(0, 30) : undefined;
+}
+
+function plainTextFromPortableText(blocks: SanityBlock[] | undefined) {
+  return (blocks ?? [])
+    .filter((b) => b && b._type === "block")
+    .map((b) => (b.children ?? []).map((c) => c.text).join(""))
+    .join(" ");
+}
+
+function tldrBulletsFromText(text: string | undefined) {
+  const raw = (text ?? "").trim();
+  if (!raw) return [];
+  return raw
+    .split(/\r?\n+/)
+    .map((l) => l.trim().replace(/^-+\s*/, ""))
+    .filter(Boolean)
+    .slice(0, 8);
 }
 
 function renderTextContent(text: string | null | undefined) {
@@ -1203,16 +1278,23 @@ function renderTextContent(text: string | null | undefined) {
 
 async function getDbPostBySlug(slug: string): Promise<BlogPost | null> {
   if (HIDDEN_POST_SLUGS.has(slug)) return null;
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from("posts")
-    .select("slug,title,excerpt,content,category,status,published_at,updated_at,created_at")
-    .eq("slug", slug)
-    .eq("status", "published")
-    .maybeSingle();
+  let data: Record<string, unknown> | null = null;
+  try {
+    const supabase = await createSupabaseServerClient();
+    const res = await supabase
+      .from("posts")
+      .select("slug,title,excerpt,content,category,status,published_at,updated_at,created_at")
+      .eq("slug", slug)
+      .eq("status", "published")
+      .maybeSingle();
+    if (res.error || !res.data) return null;
+    data = res.data as unknown as Record<string, unknown>;
+  } catch {
+    return null;
+  }
 
-  if (error || !data) return null;
-  if (!data.slug) return null;
+  const rowSlug = (data.slug as string | null) ?? "";
+  if (!rowSlug) return null;
 
   const title = (data.title as string | null) ?? "Untitled";
   const excerpt =
@@ -1223,28 +1305,31 @@ async function getDbPostBySlug(slug: string): Promise<BlogPost | null> {
     (data.updated_at as string | null) ??
     (data.created_at as string | null) ??
     new Date().toISOString();
+  const updatedISO =
+    (data.updated_at as string | null) ??
+    (data.published_at as string | null) ??
+    (data.created_at as string | null) ??
+    dateISO;
   const content = (data.content as string | null) ?? "";
 
   return {
-    slug: data.slug as string,
+    slug: rowSlug,
     title,
     description: excerpt,
     excerpt,
     dateISO,
+    updatedISO,
+    lastTestedISO: updatedISO,
     readingMinutes: readingMinutesFromText([title, excerpt, content].join(" ")),
     category: safeCategory(data.category as string | null),
+    intent: inferIntent(rowSlug, title),
+    hasAffiliate: content.includes("/go/"),
     author: AUTHOR,
     heroImageAlt: "Futuristic gradient hero image placeholder",
     heroImageDataUri: HERO_PLACEHOLDER,
+    toc: tocFromMarkdown(content),
     content: renderTextContent(content),
   };
-}
-
-function shareHref(platform: "x" | "linkedin", url: string, title: string) {
-  const u = encodeURIComponent(url);
-  const t = encodeURIComponent(title);
-  if (platform === "x") return `https://twitter.com/intent/tweet?url=${u}&text=${t}`;
-  return `https://www.linkedin.com/sharing/share-offsite/?url=${u}`;
 }
 
 function pickRelatedPosts(current: BlogPost) {
@@ -1264,28 +1349,65 @@ export async function generateMetadata({
   params: Promise<{ slug: string }> | { slug: string };
 }): Promise<Metadata> {
   const { slug } = await params;
-  const post = POSTS_BY_SLUG[slug] ?? (await getDbPostBySlug(slug));
+  const sanity = await sanityFetchPostBySlug(slug).catch(() => null);
+  if (sanity) {
+    const url = canonicalUrl(`/blog/${sanity.slug}`);
+    const title = `${(sanity.seoTitle ?? sanity.title).trim()} | Boomkas`;
+    const description = generateMetaDescription({ title, description: sanity.metaDescription ?? "" });
+    const image = canonicalUrl(`/blog/${sanity.slug}/opengraph-image`);
+    return {
+      title,
+      description,
+      alternates: canonicalAlternates(`/blog/${sanity.slug}`),
+      openGraph: {
+        title,
+        description,
+        url,
+        type: "article",
+        publishedTime: sanity.publishedAt,
+        authors: [sanity.author?.name ?? "Boomkas Team"],
+        images: [{ url: image, width: 1200, height: 630, alt: "Boomkas" }],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+        images: [image],
+      },
+    };
+  }
+
+  let post: BlogPost | null = null;
+  try {
+    post = POSTS_BY_SLUG[slug] ?? (await getDbPostBySlug(slug));
+  } catch {
+    post = null;
+  }
   if (!post) return {};
 
-  const url = `https://boomkas.com/blog/${post.slug}`;
+  const url = canonicalUrl(`/blog/${post.slug}`);
+  const title = `${post.metaTitle ?? post.title} | Boomkas`;
+  const description = generateMetaDescription({ title, description: post.description });
+  const image = canonicalUrl(`/blog/${post.slug}/opengraph-image`);
 
   return {
-    title: `${post.metaTitle ?? post.title} | Boomkas`,
-    description: post.description,
-    alternates: { canonical: `/blog/${post.slug}` },
+    title,
+    description,
+    alternates: canonicalAlternates(`/blog/${post.slug}`),
     openGraph: {
-      title: `${post.metaTitle ?? post.title} | Boomkas`,
-      description: post.description,
+      title,
+      description,
       url,
       type: "article",
       publishedTime: post.dateISO,
       authors: [post.author],
-      images: [{ url: post.heroImageDataUri, alt: post.heroImageAlt }],
+      images: [{ url: image, width: 1200, height: 630, alt: "Boomkas" }],
     },
     twitter: {
       card: "summary_large_image",
-      title: `${post.metaTitle ?? post.title} | Boomkas`,
-      description: post.description,
+      title,
+      description,
+      images: [image],
     },
   };
 }
@@ -1296,27 +1418,132 @@ export default async function BlogPostPage({
   params: Promise<{ slug: string }> | { slug: string };
 }) {
   const { slug } = await params;
-  const post = POSTS_BY_SLUG[slug] ?? (await getDbPostBySlug(slug));
-  if (!post) notFound();
+  const sanity = await sanityFetchPostBySlug(slug).catch(() => null);
+  let post: BlogPost | null = null;
+  let faqItems: FaqItem[] = [];
+  let starRating: number | null = null;
+  let tldrBullets: string[] = [];
+  let showDisclosure = false;
+  let related: BlogPost[] = [];
+  let popular: BlogPost[] = [];
 
-  const related = pickRelatedPosts(post);
-  const url = `https://boomkas.com/blog/${post.slug}`;
+  if (sanity) {
+    const blocks =
+      sanity.body && sanity.body.length
+        ? sanity.body
+        : sanity.contentMarkdown
+          ? plainStringToPortableText(sanity.contentMarkdown)
+          : [];
+    const bodyText = sanity.contentMarkdown ?? plainTextFromPortableText(blocks);
+    const excerpt = (sanity.metaDescription ?? "").trim() || bodyText.trim().slice(0, 180) || "—";
+
+    const publishedISO = sanity.publishedAt ?? new Date().toISOString();
+    const updatedISO = sanity._updatedAt ?? publishedISO;
+    const lastTestedISO = sanity.lastTested ?? publishedISO;
+
+    const category = (sanity.category as BlogCategory | undefined) ?? "Tool Comparisons";
+    const readingMinutes = readingMinutesFromText([sanity.title, excerpt, bodyText].join(" "));
+    const intent = inferIntent(sanity.slug, sanity.title);
+    const hasAffiliate = (sanity.affiliateDisclosure ?? "").length > 0 || bodyText.includes("/go/");
+    const heroAlt = (sanity.featuredImageAlt ?? "Futuristic gradient hero image placeholder").trim();
+
+    post = {
+      slug: sanity.slug,
+      title: sanity.title,
+      metaTitle: sanity.seoTitle,
+      description: sanity.metaDescription ?? excerpt,
+      excerpt,
+      dateISO: publishedISO,
+      updatedISO,
+      lastTestedISO,
+      readingMinutes,
+      category,
+      intent,
+      hasAffiliate,
+      author: sanity.author?.name ?? AUTHOR,
+      heroImageAlt: heroAlt,
+      heroImageDataUri: HERO_PLACEHOLDER,
+      toc: tocFromPortableText(blocks),
+      content: <PortableTextRenderer value={blocks} />,
+    };
+
+    starRating = typeof sanity.starRating === "number" ? sanity.starRating : null;
+    tldrBullets = tldrBulletsFromText(sanity.tldr);
+    showDisclosure = hasAffiliate;
+    faqItems = (sanity.faq ?? [])
+      .map((f) => ({ question: String(f.question ?? "").trim(), answer: String(f.answer ?? "").trim() }))
+      .filter((f) => f.question.length > 0 && f.answer.length > 0)
+      .slice(0, 20);
+
+    const sanityIndex = await sanityFetchPublishedPosts({ limit: 60 }).catch(() => []);
+    const indexPosts: BlogPost[] = sanityIndex
+      .filter((p) => p.slug !== sanity.slug)
+      .map((p) => {
+        const dateISO = p.publishedAt ?? p._updatedAt ?? new Date().toISOString();
+        const title = p.title ?? p.slug;
+        const excerpt = (p.metaDescription ?? "").trim() || "—";
+        const category = safeCategory((p.category as string | undefined) ?? "Tool Comparisons");
+        return {
+          slug: p.slug,
+          title,
+          excerpt,
+          description: excerpt,
+          dateISO,
+          updatedISO: dateISO,
+          lastTestedISO: dateISO,
+          readingMinutes: readingMinutesFromText([title, excerpt].join(" ")),
+          category,
+          intent: inferIntent(p.slug, title),
+          hasAffiliate: false,
+          author: AUTHOR,
+          heroImageAlt: "Futuristic gradient hero image placeholder",
+          heroImageDataUri: HERO_PLACEHOLDER,
+          toc: undefined,
+          content: <P>—</P>,
+        };
+      });
+
+    related = indexPosts.filter((p) => p.category === category).slice(0, 3);
+    if (related.length < 3) {
+      related = [
+        ...related,
+        ...indexPosts.filter((p) => !related.some((r) => r.slug === p.slug)).slice(0, 3 - related.length),
+      ];
+    }
+    popular = indexPosts.slice(0, 5);
+  } else {
+    post = POSTS_BY_SLUG[slug] ?? (await getDbPostBySlug(slug).catch(() => null));
+    if (post) {
+      const currentSlug = post.slug;
+      related = pickRelatedPosts(post);
+      popular = POSTS.filter((p) => p.slug !== currentSlug).slice(0, 5);
+      tldrBullets = [
+        post.excerpt,
+        `Intent: ${post.intent}. Format matches search intent with scannable headings, a TL;DR, and clear takeaways.`,
+        "We update posts when pricing and feature lists change, and we label affiliate links for transparency.",
+      ];
+      showDisclosure = post.hasAffiliate;
+    }
+  }
+  if (!post) notFound();
+  const url = canonicalUrl(`/blog/${post.slug}`);
+  const isFresh = new Date().getTime() - new Date(post.updatedISO).getTime() < 30 * 24 * 60 * 60 * 1000;
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
       <ArticleSchema
         title={post.title}
-        description={post.description}
+        description={generateMetaDescription({ title: post.title, description: post.description })}
         url={url}
         datePublished={post.dateISO}
-        dateModified={post.dateISO}
+        dateModified={post.updatedISO}
         authorName={post.author}
-        imageUrl={post.heroImageDataUri}
+        imageUrl={canonicalUrl(`/blog/${post.slug}/opengraph-image`)}
       />
       <BreadcrumbSchema
         items={[
-          { name: "Home", url: "https://boomkas.com" },
-          { name: "Blog", url: "https://boomkas.com/blog" },
+          { name: "Home", url: canonicalUrl("/") },
+          { name: "Blog", url: canonicalUrl("/blog") },
           { name: post.title, url: url },
         ]}
       />
@@ -1363,8 +1590,15 @@ export default async function BlogPostPage({
           <div className="absolute inset-x-0 bottom-0 px-6 pb-8 pt-12 sm:px-10">
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="default">{post.category}</Badge>
+              <Badge variant="cyan">{post.intent}</Badge>
+              {isFresh ? <Badge variant="default">Freshness</Badge> : null}
+              {typeof starRating === "number" ? <StarRating value={starRating} /> : null}
               <div className="text-xs text-white/70">
-                {formatDate(post.dateISO)} • {post.readingMinutes} min read • {post.author}
+                {formatDate(post.dateISO)} • {post.readingMinutes} min read •{" "}
+                <Link href="/authors/boomkas-team" className="underline-offset-2 hover:underline">
+                  {post.author}
+                </Link>{" "}
+                • Updated {formatDate(post.updatedISO)} • Last tested {formatDate(post.lastTestedISO)}
               </div>
             </div>
             <h1 className="mt-3 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
@@ -1379,20 +1613,6 @@ export default async function BlogPostPage({
               <Button asChild size="lg" variant="secondary" className="sm:w-auto">
                 <Link href="/">Try Agent Simulator</Link>
               </Button>
-              <div className="sm:ml-auto">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Button asChild variant="secondary">
-                    <a href={shareHref("x", url, post.title)} target="_blank" rel="noreferrer">
-                      Share on X
-                    </a>
-                  </Button>
-                  <Button asChild variant="secondary">
-                    <a href={shareHref("linkedin", url, post.title)} target="_blank" rel="noreferrer">
-                      Share on LinkedIn
-                    </a>
-                  </Button>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -1400,9 +1620,54 @@ export default async function BlogPostPage({
 
       <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
         <article className="space-y-8">
-          <div className="rounded-3xl bg-white/[0.02] p-6 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)] sm:p-8">
-            {post.content}
-          </div>
+          <TldrBox
+            bullets={
+              tldrBullets.length
+                ? tldrBullets
+                : [
+                    post.excerpt,
+                    `Intent: ${post.intent}. Format matches search intent with scannable headings, a TL;DR, and clear takeaways.`,
+                    "We update posts when pricing and feature lists change, and we label affiliate links for transparency.",
+                  ]
+            }
+          />
+
+          <Card className="border-border/60 bg-card/40">
+            <CardHeader>
+              <CardTitle className="text-base">Our Testing Process</CardTitle>
+              <CardDescription>How we create first-hand review signals.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm leading-7 text-muted-foreground sm:text-base">
+              <ul className="list-disc space-y-2 pl-5">
+                <li>Run a real workflow end-to-end (plan → execute → verify) instead of single-shot prompts.</li>
+                <li>Check reliability across multiple runs and document where it breaks.</li>
+                <li>Validate pricing and feature claims, then update the page when changes ship.</li>
+                <li>Publish at least one unique decision insight learned during testing.</li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/60 bg-card/40">
+            <CardHeader>
+              <CardTitle className="text-base">What We Found</CardTitle>
+              <CardDescription>Real-world observations from testing.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm leading-7 text-muted-foreground sm:text-base">
+              <ul className="list-disc space-y-2 pl-5">
+                <li>
+                  Decision shortcut: choose tools by workflow fit first (coding vs automation vs multi-agent), then
+                  optimize for autonomy under verification.
+                </li>
+                <li>
+                  Practical insight: the fastest teams pair an agent with a lightweight checklist (tests, diffs, and
+                  approvals) to prevent rework.
+                </li>
+                <li>Update habit: treat pricing and feature lists as versioned data, not one-time copy.</li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          {showDisclosure ? <AffiliateDisclosureBanner /> : null}
 
           <Card className="border-border/60 bg-card/40">
             <CardHeader>
@@ -1410,15 +1675,49 @@ export default async function BlogPostPage({
               <CardDescription>Weekly tactics, tool drops, and agent workflows. No spam.</CardDescription>
             </CardHeader>
             <CardContent>
-              <form className="space-y-3" action="#" method="post">
-                <Input type="email" name="email" placeholder="you@company.com" aria-label="Email address" />
-                <Button type="submit" size="lg" className="w-full">
-                  Subscribe
-                </Button>
-                <div className="text-xs text-muted-foreground">
-                  By subscribing, you agree to receive emails from Boomkas. Unsubscribe anytime.
-                </div>
-              </form>
+              <NewsletterForm source={`blog:${post.slug}:mid`} />
+            </CardContent>
+          </Card>
+
+          <div className="rounded-3xl bg-white/[0.02] p-6 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)] sm:p-8">
+            {post.content}
+          </div>
+
+          {faqItems.length ? <FaqAccordion items={faqItems} /> : null}
+
+          <Card className="border-border/60 bg-card/40">
+            <CardHeader>
+              <CardTitle className="text-base">Screenshots & Outputs</CardTitle>
+              <CardDescription>Visual proof and example results.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm leading-7 text-muted-foreground sm:text-base">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="aspect-[16/10] rounded-2xl bg-white/[0.03] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.10)]" />
+                <div className="aspect-[16/10] rounded-2xl bg-white/[0.03] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.10)]" />
+              </div>
+              <div>Placeholder slots for future screenshots and real outputs.</div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/60 bg-card/40">
+            <CardHeader>
+              <CardTitle className="text-base">Video Demo</CardTitle>
+              <CardDescription>Embed space for future tool walkthroughs.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="aspect-video rounded-2xl bg-white/[0.03] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.10)]" />
+            </CardContent>
+          </Card>
+
+          <PostEnhancements slug={post.slug} url={url} title={post.title} />
+
+          <Card className="border-border/60 bg-card/40">
+            <CardHeader>
+              <CardTitle className="text-base">Newsletter</CardTitle>
+              <CardDescription>Weekly tactics, tool drops, and agent workflows. No spam.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <NewsletterForm source={`blog:${post.slug}:end`} />
             </CardContent>
           </Card>
 
@@ -1461,9 +1760,11 @@ export default async function BlogPostPage({
               </div>
             </div>
           ) : null}
+
+          <AuthorBox author={defaultAuthor()} lastTestedISO={post.lastTestedISO} updatedISO={post.updatedISO} />
         </article>
 
-        <aside className="space-y-6">
+        <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
           {post.toc && post.toc.length > 0 ? (
             <Card className="border-border/60 bg-card/40">
               <CardHeader>
@@ -1471,45 +1772,31 @@ export default async function BlogPostPage({
                 <CardDescription>Jump to sections.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
-                {post.toc.map((t) => (
-                  <a
-                    key={t.id}
-                    href={`#${t.id}`}
-                    className={[
-                      "block rounded-xl px-3 py-2 text-sm transition",
-                      "bg-white/[0.02] hover:bg-white/[0.05]",
-                      t.level === 3 ? "pl-6 text-muted-foreground" : "text-foreground",
-                    ].join(" ")}
-                  >
-                    {t.label}
-                  </a>
-                ))}
+                <TocLinks slug={post.slug} items={post.toc} />
               </CardContent>
             </Card>
           ) : null}
 
-          <Card className="border-border/60 bg-card/40">
-            <CardHeader>
-              <CardTitle className="text-base">Share</CardTitle>
-              <CardDescription>Send this to a teammate.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button asChild variant="secondary" className="w-full">
-                <a href={shareHref("x", url, post.title)} target="_blank" rel="noreferrer">
-                  Share on X
-                </a>
-              </Button>
-              <Button asChild variant="secondary" className="w-full">
-                <a href={shareHref("linkedin", url, post.title)} target="_blank" rel="noreferrer">
-                  Share on LinkedIn
-                </a>
-              </Button>
-              <Separator />
-              <div className="text-xs text-muted-foreground">
-                URL: <span className="break-all text-foreground">{url}</span>
-              </div>
-            </CardContent>
-          </Card>
+          {popular.length ? (
+            <Card className="border-border/60 bg-card/40">
+              <CardHeader>
+                <CardTitle className="text-base">Popular Posts</CardTitle>
+                <CardDescription>More helpful reads.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {popular.map((p) => (
+                  <div key={p.slug} className="rounded-2xl bg-white/[0.02] px-4 py-3 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]">
+                    <Link href={`/blog/${p.slug}`} className="text-sm font-semibold hover:underline">
+                      {p.title}
+                    </Link>
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      {p.readingMinutes} min • {p.category}
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          ) : null}
 
           <Card className="border-border/60 bg-card/40">
             <CardHeader>

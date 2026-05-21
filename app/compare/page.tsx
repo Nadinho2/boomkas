@@ -2,12 +2,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { BreadcrumbSchema } from "@/components/schema/BreadcrumbSchema";
+import { canonicalAlternates, canonicalUrl, generateMetaDescription } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Agentic AI Tool Comparisons",
-  description: "Side-by-side breakdowns to help you pick the right tool.",
+  description: generateMetaDescription({
+    title: "Agentic AI Tool Comparisons",
+    description:
+      "Side-by-side breakdowns to help you pick the right agentic AI tool faster, with pricing, autonomy, key features, and clear recommendations by use case.",
+  }),
   alternates: {
-    canonical: "/compare",
+    ...canonicalAlternates("/compare"),
     languages: {
       "en-US": "https://boomkas.com/compare",
       "en-GB": "https://boomkas.com/compare",
@@ -19,15 +25,23 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Agentic AI Tool Comparisons",
-    description: "Side-by-side breakdowns to help you pick the right tool.",
-    url: "https://boomkas.com/compare",
+    description: generateMetaDescription({
+      title: "Agentic AI Tool Comparisons",
+      description:
+        "Side-by-side breakdowns to help you pick the right agentic AI tool faster, with pricing, autonomy, key features, and clear recommendations by use case.",
+    }),
+    url: canonicalUrl("/compare"),
     type: "website",
     images: [{ url: "https://boomkas.com/og.png", alt: "Boomkas" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Agentic AI Tool Comparisons",
-    description: "Side-by-side breakdowns to help you pick the right tool.",
+    description: generateMetaDescription({
+      title: "Agentic AI Tool Comparisons",
+      description:
+        "Side-by-side breakdowns to help you pick the right agentic AI tool faster, with pricing, autonomy, key features, and clear recommendations by use case.",
+    }),
     images: ["https://boomkas.com/og.png"],
   },
 };
@@ -46,6 +60,12 @@ const COMPARISONS = [
 export default function CompareIndexPage() {
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: canonicalUrl("/") },
+          { name: "Compare", url: canonicalUrl("/compare") },
+        ]}
+      />
       <div className="mb-10">
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
           Agentic AI Tool Comparisons

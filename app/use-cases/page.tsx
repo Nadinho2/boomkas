@@ -2,12 +2,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { BreadcrumbSchema } from "@/components/schema/BreadcrumbSchema";
+import { canonicalAlternates, canonicalUrl, generateMetaDescription } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Find the Right AI Agent for Your Use Case",
-  description: "Browse the best agentic AI tools by category, from coding to workflow automation.",
+  description: generateMetaDescription({
+    title: "Find the Right AI Agent for Your Use Case",
+    description:
+      "Browse the best agentic AI tools by the problems they solve, with categories for coding, workflow automation, multi-agent systems, no-code builders, and enterprise teams.",
+  }),
   alternates: {
-    canonical: "/use-cases",
+    ...canonicalAlternates("/use-cases"),
     languages: {
       "en-US": "https://boomkas.com/use-cases",
       "en-GB": "https://boomkas.com/use-cases",
@@ -16,6 +22,27 @@ export const metadata: Metadata = {
       "en-IN": "https://boomkas.com/use-cases",
       "en-SG": "https://boomkas.com/use-cases",
     },
+  },
+  openGraph: {
+    title: "Find the Right AI Agent for Your Use Case",
+    description: generateMetaDescription({
+      title: "Find the Right AI Agent for Your Use Case",
+      description:
+        "Browse the best agentic AI tools by the problems they solve, with categories for coding, workflow automation, multi-agent systems, no-code builders, and enterprise teams.",
+    }),
+    url: canonicalUrl("/use-cases"),
+    type: "website",
+    images: [{ url: "https://boomkas.com/og.png", alt: "Boomkas" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Find the Right AI Agent for Your Use Case",
+    description: generateMetaDescription({
+      title: "Find the Right AI Agent for Your Use Case",
+      description:
+        "Browse the best agentic AI tools by the problems they solve, with categories for coding, workflow automation, multi-agent systems, no-code builders, and enterprise teams.",
+    }),
+    images: ["https://boomkas.com/og.png"],
   },
 };
 
@@ -32,6 +59,12 @@ const CATEGORIES = [
 export default function UseCasesIndexPage() {
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: canonicalUrl("/") },
+          { name: "Use Cases", url: canonicalUrl("/use-cases") },
+        ]}
+      />
       <div className="mb-10">
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
           Find the Right AI Agent for Your Use Case
