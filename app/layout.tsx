@@ -41,6 +41,9 @@ export const metadata: Metadata = {
     "tool comparison",
     "reviews",
   ],
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+  },
   alternates: canonicalAlternates("/"),
   openGraph: {
     type: "website",
