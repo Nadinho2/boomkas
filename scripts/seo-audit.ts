@@ -5,6 +5,7 @@ type AuditResult = {
   redirectHops: number;
   canonical?: string;
   canonicalStatus?: number;
+  canonicalRedirectTo?: string;
   metaDescriptionLength?: number;
   hasBreadcrumbSchema?: boolean;
   hasValidArticleSchema?: boolean;
@@ -17,7 +18,7 @@ function env(name: string) {
 }
 
 function baseUrl() {
-  const raw = env("SEO_AUDIT_BASE_URL") ?? "https://boomkas.com";
+  const raw = env("SEO_AUDIT_BASE_URL") ?? "https://www.boomkas.com";
   return new URL(raw).origin;
 }
 
@@ -27,6 +28,28 @@ function normalizeUrl(input: string, base: string) {
   } catch {
     return input;
   }
+}
+
+function stripWww(host: string) {
+  const lower = host.toLowerCase();
+  return lower.startsWith("www.") ? lower.slice(4) : lower;
+}
+
+function comparableUrl(input: string) {
+  try {
+    const u = new URL(input);
+    const pathname = u.pathname === "/" ? "/" : u.pathname.replace(/\/+$/, "");
+    return { hostKey: stripWww(u.host), pathname, search: u.search };
+  } catch {
+    return null;
+  }
+}
+
+function isHostAliasRedirect(fromUrl: string, toUrl: string) {
+  const a = comparableUrl(fromUrl);
+  const b = comparableUrl(toUrl);
+  if (!a || !b) return false;
+  return a.hostKey === b.hostKey && a.pathname === b.pathname && a.search === b.search;
 }
 
 async function fetchWithRedirects(inputUrl: string, maxHops = 10) {
@@ -133,14 +156,23 @@ function hasValidArticleSchema(jsonLd: unknown[]) {
 }
 
 function countInternalNofollow(html: string, base: string) {
-  const origin = new URL(base).origin;
+  const baseOrigin = new URL(base).origin;
+  const baseHostKey = stripWww(new URL(baseOrigin).host);
   const re = /<a[^>]+href=["']([^"']+)["'][^>]*>/gi;
   let m: RegExpExecArray | null;
   let count = 0;
   while ((m = re.exec(html)) !== null) {
     const tag = m[0];
-    const href = normalizeUrl(m[1] ?? "", origin);
-    const isInternal = href.startsWith(origin);
+    const rawHref = m[1] ?? "";
+    const href = normalizeUrl(rawHref, baseOrigin);
+    const isInternal = (() => {
+      if (rawHref.startsWith("/")) return true;
+      try {
+        return stripWww(new URL(href).host) === baseHostKey;
+      } catch {
+        return false;
+      }
+    })();
     if (!isInternal) continue;
     const rel = tag.match(/rel=["']([^"']+)["']/i)?.[1] ?? "";
     if (/\bnofollow\b/i.test(rel)) count += 1;
@@ -178,10 +210,13 @@ async function run() {
       const internalNofollowCount = fetched.html ? countInternalNofollow(fetched.html, base) : undefined;
 
       let canonicalStatus: number | undefined;
+      let canonicalRedirectTo: string | undefined;
       if (canonical) {
         try {
           const res = await fetch(canonical, { method: "HEAD", redirect: "manual" });
           canonicalStatus = res.status;
+          const location = res.headers.get("location");
+          canonicalRedirectTo = location ? normalizeUrl(location, canonical) : undefined;
         } catch {
           canonicalStatus = 0;
         }
@@ -194,6 +229,7 @@ async function run() {
         redirectHops: fetched.hops,
         canonical,
         canonicalStatus,
+        canonicalRedirectTo,
         metaDescriptionLength: metaDescription ? metaDescription.length : undefined,
         hasBreadcrumbSchema: hasBreadcrumbSchema(jsonLd),
         hasValidArticleSchema: url.includes("/blog/") ? hasValidArticleSchema(jsonLd) : undefined,
@@ -203,13 +239,22 @@ async function run() {
   });
   await Promise.all(workers);
 
-  const redirectsInSitemap = results.filter((r) => r.redirectHops > 0 || (r.status >= 300 && r.status < 400));
+  const redirectsInSitemap = results.filter((r) => {
+    const isRedirect = r.redirectHops > 0 || (r.status >= 300 && r.status < 400);
+    if (!isRedirect) return false;
+    return !isHostAliasRedirect(r.url, r.finalUrl);
+  });
   const non200 = results.filter((r) => r.status !== 200);
   const canonicalToRedirect = results.filter(
-    (r) => r.canonical && r.canonicalStatus && r.canonicalStatus >= 300 && r.canonicalStatus < 400
+    (r) => {
+      if (!r.canonical || !r.canonicalStatus) return false;
+      if (r.canonicalStatus < 300 || r.canonicalStatus >= 400) return false;
+      if (r.canonicalRedirectTo && isHostAliasRedirect(r.canonical, r.canonicalRedirectTo)) return false;
+      return true;
+    }
   );
   const canonicalMismatch = results.filter((r) => r.canonical && r.canonical !== r.finalUrl);
-  const redirectChains = results.filter((r) => r.redirectHops > 1);
+  const redirectChains = results.filter((r) => r.redirectHops > 1 && !isHostAliasRedirect(r.url, r.finalUrl));
   const shortDescriptions = results.filter(
     (r) => typeof r.metaDescriptionLength === "number" && r.metaDescriptionLength < 150
   );

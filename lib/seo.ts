@@ -1,7 +1,7 @@
 export const SITE_ORIGIN =
   (process.env.NEXT_PUBLIC_SITE_ORIGIN && process.env.NEXT_PUBLIC_SITE_ORIGIN.length > 0
     ? process.env.NEXT_PUBLIC_SITE_ORIGIN
-    : undefined) ?? "https://boomkas.com";
+    : undefined) ?? "https://www.boomkas.com";
 
 type Branded<T, Brand extends string> = T & { readonly __brand: Brand };
 export type MetaDescription = Branded<string, "MetaDescription">;
@@ -10,7 +10,7 @@ function normalizeOrigin(origin: string) {
   try {
     return new URL(origin).origin;
   } catch {
-    return "https://boomkas.com";
+    return "https://www.boomkas.com";
   }
 }
 
@@ -85,4 +85,3 @@ export function normalizeCanonicalHost(requestUrl: URL) {
   const preferred = new URL(SITE_ORIGIN).host.toLowerCase();
   return host === preferred ? null : preferred;
 }
-

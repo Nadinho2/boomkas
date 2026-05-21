@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { SITE_ORIGIN } from "@/lib/seo";
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -9,7 +10,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/go/", "/admin/", "/api/", "/_not-found"],
       },
     ],
-    host: "https://boomkas.com",
-    sitemap: "https://boomkas.com/sitemap.xml",
+    host: SITE_ORIGIN,
+    sitemap: `${SITE_ORIGIN}/sitemap.xml`,
   };
 }

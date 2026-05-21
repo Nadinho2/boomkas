@@ -4,7 +4,7 @@ import Link from "next/link";
 import Script from "next/script";
 import { WebSiteSchema } from "@/components/schema/WebSiteSchema";
 import { OrganizationSchema } from "@/components/schema/OrganizationSchema";
-import { canonicalAlternates, canonicalUrl, generateMetaDescription } from "@/lib/seo";
+import { SITE_ORIGIN, canonicalAlternates, canonicalUrl, generateMetaDescription } from "@/lib/seo";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -25,7 +25,7 @@ const ROOT_DESCRIPTION = generateMetaDescription({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://boomkas.com"),
+  metadataBase: new URL(SITE_ORIGIN),
   title: {
     default: "Boomkas — Agentic AI Tools Compared (2026)",
     template: "%s — Boomkas",
@@ -85,6 +85,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const gaId = process.env.NEXT_PUBLIC_GA4_ID;
+  const rootHref = canonicalUrl("/");
 
   return (
     <html
@@ -92,13 +93,13 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
     >
       <head>
-        <link rel="alternate" hrefLang="en-us" href="https://boomkas.com" />
-        <link rel="alternate" hrefLang="en-gb" href="https://boomkas.com" />
-        <link rel="alternate" hrefLang="en-ca" href="https://boomkas.com" />
-        <link rel="alternate" hrefLang="en-au" href="https://boomkas.com" />
-        <link rel="alternate" hrefLang="en-in" href="https://boomkas.com" />
-        <link rel="alternate" hrefLang="en-sg" href="https://boomkas.com" />
-        <link rel="alternate" hrefLang="x-default" href="https://boomkas.com" />
+        <link rel="alternate" hrefLang="en-us" href={rootHref} />
+        <link rel="alternate" hrefLang="en-gb" href={rootHref} />
+        <link rel="alternate" hrefLang="en-ca" href={rootHref} />
+        <link rel="alternate" hrefLang="en-au" href={rootHref} />
+        <link rel="alternate" hrefLang="en-in" href={rootHref} />
+        <link rel="alternate" hrefLang="en-sg" href={rootHref} />
+        <link rel="alternate" hrefLang="x-default" href={rootHref} />
         <meta name="geo.region" content="US" />
         <meta name="geo.placename" content="United States" />
         <meta name="language" content="English" />

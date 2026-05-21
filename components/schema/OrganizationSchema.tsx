@@ -1,14 +1,15 @@
 import { JsonLd } from "@/components/schema/JsonLd";
+import { SITE_ORIGIN } from "@/lib/seo";
 
 export function OrganizationSchema() {
   const schema = {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "Boomkas",
-    url: "https://boomkas.com",
+    url: SITE_ORIGIN,
     logo: {
       "@type": "ImageObject",
-      url: "https://boomkas.com/og.png",
+      url: `${SITE_ORIGIN}/og.png`,
       width: 1200,
       height: 630,
     },
@@ -16,4 +17,3 @@ export function OrganizationSchema() {
 
   return <JsonLd data={schema} />;
 }
-

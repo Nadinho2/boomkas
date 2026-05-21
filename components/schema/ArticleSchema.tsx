@@ -1,4 +1,5 @@
 import { JsonLd } from "@/components/schema/JsonLd";
+import { SITE_ORIGIN } from "@/lib/seo";
 
 export function ArticleSchema({
   title,
@@ -33,17 +34,17 @@ export function ArticleSchema({
     publisher: {
       "@type": "Organization",
       name: "Boomkas",
-      url: "https://boomkas.com",
+      url: SITE_ORIGIN,
       logo: {
         "@type": "ImageObject",
-        url: "https://boomkas.com/og.png",
+        url: `${SITE_ORIGIN}/og.png`,
         width: 1200,
         height: 630,
       },
     },
     image: {
       "@type": "ImageObject",
-      url: imageUrl || "https://boomkas.com/og.png",
+      url: imageUrl || `${SITE_ORIGIN}/og.png`,
       width: 1200,
       height: 630,
     },
