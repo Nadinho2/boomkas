@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { SITE_ORIGIN } from "@/lib/seo";
 
 const COUNTRY_REGION_MAP: Record<string, string> = {
   US: "us",
@@ -33,12 +34,22 @@ export async function proxy(request: NextRequest) {
     const host = url.host.toLowerCase();
     const proto = (request.headers.get("x-forwarded-proto") ?? url.protocol.replace(":", "")).toLowerCase();
 
-    const preferredHost = "boomkas.com";
+    const preferredHost = (() => {
+      try {
+        return new URL(SITE_ORIGIN).host.toLowerCase();
+      } catch {
+        return "www.boomkas.com";
+      }
+    })();
+    const alternateHost = preferredHost.startsWith("www.") ? preferredHost.slice(4) : `www.${preferredHost}`;
+    const knownHosts = new Set([preferredHost, alternateHost]);
+
     const lowerPath = pathname.toLowerCase();
     const normalizedPath =
       lowerPath === "/" ? "/" : lowerPath.endsWith("/") ? lowerPath.slice(0, -1) : lowerPath;
 
-    const needsHost = host === `www.${preferredHost}`;
+    const shouldNormalizeHost = process.env.VERCEL_ENV === "production" || process.env.NODE_ENV === "production";
+    const needsHost = shouldNormalizeHost && knownHosts.has(host) && host !== preferredHost;
     const needsHttps = proto !== "https";
     const needsPath = pathname !== normalizedPath;
 
