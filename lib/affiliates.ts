@@ -1,3 +1,5 @@
+import { SITE_ORIGIN } from "@/lib/seo";
+
 export type AffiliateEntry = {
   slug: string;
   label: string;
@@ -94,7 +96,7 @@ function buildLabel(seed: AffiliateSeed) {
 
 export const AFFILIATES: Record<string, AffiliateEntry> = Object.fromEntries(
   AFFILIATE_SEEDS.map((seed) => {
-    const url = `https://boomkas.com/go/${seed.slug}`;
+    const url = `${SITE_ORIGIN}/go/${seed.slug}`;
     const badge = BEST_DEAL_SLUGS.has(seed.slug) ? "Best Deal" : seed.hasFreeTier ? "Free Trial" : undefined;
     return [
       seed.slug,
