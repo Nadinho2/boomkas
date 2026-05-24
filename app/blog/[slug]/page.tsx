@@ -9,6 +9,7 @@ import { canonicalAlternates, canonicalUrl, generateMetaDescription } from "@/li
 import { defaultAuthor } from "@/lib/authors";
 import { plainStringToPortableText } from "@/lib/portableText";
 import { sanityFetchPostBySlug, sanityFetchPublishedPosts, type SanityBlock } from "@/lib/sanity";
+import { safeFormatDate } from "@/lib/utils";
 import { ArticleSchema } from "@/components/schema/ArticleSchema";
 import { BreadcrumbSchema } from "@/components/schema/BreadcrumbSchema";
 import { AffiliateDisclosureBanner } from "@/components/blog/AffiliateDisclosureBanner";
@@ -988,9 +989,30 @@ export function generateStaticParams() {
   return POSTS.map((p) => ({ slug: p.slug }));
 }
 
+function safeIsoDate(dateString: string | null | undefined) {
+  if (!dateString) return new Date().toISOString();
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return new Date().toISOString();
+    return date.toISOString();
+  } catch {
+    return new Date().toISOString();
+  }
+}
+
+function safeDateMs(dateString: string | null | undefined) {
+  if (!dateString) return null;
+  try {
+    const date = new Date(dateString);
+    const t = date.getTime();
+    return isNaN(t) ? null : t;
+  } catch {
+    return null;
+  }
+}
+
 function formatDate(dateISO: string) {
-  const date = new Date(dateISO);
-  return new Intl.DateTimeFormat("en-US", { year: "numeric", month: "long", day: "2-digit" }).format(date);
+  return safeFormatDate(dateISO);
 }
 
 function safeCategory(input: string | null | undefined): BlogCategory {
@@ -1337,7 +1359,9 @@ function pickRelatedPosts(current: BlogPost) {
   const score = (p: BlogPost) => {
     let s = 0;
     if (p.category === current.category) s += 3;
-    s += Math.max(0, 20 - Math.abs(new Date(p.dateISO).getTime() - new Date(current.dateISO).getTime()) / 8.64e7);
+    const a = safeDateMs(p.dateISO) ?? Date.now();
+    const b = safeDateMs(current.dateISO) ?? Date.now();
+    s += Math.max(0, 20 - Math.abs(a - b) / 8.64e7);
     return s;
   };
   return [...candidates].sort((a, b) => score(b) - score(a)).slice(0, 3);
@@ -1437,9 +1461,9 @@ export default async function BlogPostPage({
     const bodyText = sanity.contentMarkdown ?? plainTextFromPortableText(blocks);
     const excerpt = (sanity.metaDescription ?? "").trim() || bodyText.trim().slice(0, 180) || "—";
 
-    const publishedISO = sanity.publishedAt ?? new Date().toISOString();
-    const updatedISO = sanity._updatedAt ?? publishedISO;
-    const lastTestedISO = sanity.lastTested ?? publishedISO;
+    const publishedISO = safeIsoDate(sanity.publishedAt);
+    const updatedISO = safeIsoDate(sanity._updatedAt ?? publishedISO);
+    const lastTestedISO = safeIsoDate(sanity.lastTested ?? publishedISO);
 
     const category = (sanity.category as BlogCategory | undefined) ?? "Tool Comparisons";
     const readingMinutes = readingMinutesFromText([sanity.title, excerpt, bodyText].join(" "));
@@ -1479,7 +1503,7 @@ export default async function BlogPostPage({
     const indexPosts: BlogPost[] = sanityIndex
       .filter((p) => p.slug !== sanity.slug)
       .map((p) => {
-        const dateISO = p.publishedAt ?? p._updatedAt ?? new Date().toISOString();
+        const dateISO = safeIsoDate(p.publishedAt ?? p._updatedAt);
         const title = p.title ?? p.slug;
         const excerpt = (p.metaDescription ?? "").trim() || "—";
         const category = safeCategory((p.category as string | undefined) ?? "Tool Comparisons");
@@ -1527,7 +1551,11 @@ export default async function BlogPostPage({
   }
   if (!post) notFound();
   const url = canonicalUrl(`/blog/${post.slug}`);
-  const isFresh = new Date().getTime() - new Date(post.updatedISO).getTime() < 30 * 24 * 60 * 60 * 1000;
+  const isFresh = (() => {
+    const updatedMs = safeDateMs(post.updatedISO);
+    if (!updatedMs) return false;
+    return Date.now() - updatedMs < 30 * 24 * 60 * 60 * 1000;
+  })();
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">

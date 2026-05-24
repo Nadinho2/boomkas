@@ -141,13 +141,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return results;
   }
 
+  function safeIsoString(dateString: string | undefined) {
+    if (!dateString) return new Date().toISOString();
+    try {
+      const d = new Date(dateString);
+      if (Number.isNaN(d.getTime())) return new Date().toISOString();
+      return d.toISOString();
+    } catch {
+      return new Date().toISOString();
+    }
+  }
+
   const checked = await filterConcurrent(candidates, 10, async (c) => checkIs200(canonicalUrl(c.pathname)));
 
   return checked
     .sort((a, b) => (a.pathname < b.pathname ? -1 : 1))
     .map((c) => {
       const url = canonicalUrl(c.pathname);
-      const lastModified = c.lastModifiedISO ? new Date(c.lastModifiedISO) : new Date();
+      const lastModified = new Date(safeIsoString(c.lastModifiedISO));
       return {
         url,
         lastModified,

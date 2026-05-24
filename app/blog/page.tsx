@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { BreadcrumbSchema } from "@/components/schema/BreadcrumbSchema";
 import { canonicalAlternates, canonicalUrl, generateMetaDescription } from "@/lib/seo";
 import { StarRating } from "@/components/blog/StarRating";
+import { safeFormatDate } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Agentic AI Blog & Guides 2026 | Boomkas",
@@ -111,13 +112,6 @@ function safeCategory(input: string | null | undefined): Exclude<BlogCategory, "
 function readingMinutesFromText(text: string) {
   const words = text.trim().split(/\s+/).filter(Boolean).length;
   return Math.max(1, Math.ceil(words / 220));
-}
-
-function formatDate(dateISO: string) {
-  const date = new Date(dateISO);
-  return new Intl.DateTimeFormat("en-US", { year: "numeric", month: "short", day: "2-digit" }).format(
-    date
-  );
 }
 
 function buildQuery(params: Record<string, string | undefined>) {
@@ -359,7 +353,7 @@ export default async function BlogIndexPage({
                     <Badge variant="default">{post.category}</Badge>
                     {typeof post.starRating === "number" ? <StarRating value={post.starRating} /> : null}
                     <div className="text-xs text-muted-foreground">
-                      {formatDate(post.dateISO)} • {post.readingMinutes} min read
+                      {safeFormatDate(post.dateISO)} • {post.readingMinutes} min read
                     </div>
                   </div>
                   <CardTitle className="text-base leading-snug tracking-tight">
